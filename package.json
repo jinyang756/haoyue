@@ -1,0 +1,27 @@
+{
+  "name": "haoyue-ai-engine",
+  "version": "1.0.0",
+  "description": "皓月量化智能引擎 - A股股票分析系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build"
+  },
+  "keywords": [
+    "AI",
+    "stock",
+    "quantitative",
+    "analysis"
+  ],
+  "author": "皓月团队",
+  "license": "MIT",
+  "dependencies": {
+    "chart.js": "^4.4.8",
+    "font-awesome": "^4.7.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
