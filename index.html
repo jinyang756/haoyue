@@ -171,7 +171,7 @@
     <!-- 页面内容将通过JavaScript动态加载 -->
     <div id="page-content">
       <!-- 首页内容 -->
-      <div id="home-page" class="page-section">
+      <div id="home-page" class="page-section hidden">
         <!-- 市场概览 -->
         <section class="mb-8">
           <div class="flex justify-between items-center mb-4">
@@ -2427,528 +2427,63 @@
     </div>
   </div>
 
-  <script>
-    // 黑洞入口界面和量子粒子特效
-    document.addEventListener('DOMContentLoaded', () => {
-      // 获取DOM元素
-      const blackholeEntry = document.getElementById('blackhole-entry');
-      const particlesContainer = document.getElementById('particles-container');
-      const loadingProgress = document.getElementById('loading-progress');
-      const progressBar = document.getElementById('progress-bar');
-      const loadingText = document.getElementById('loading-text');
-      const progressPercent = document.getElementById('progress-percent');
-      
-      // 粒子数量
-      const particleCount = 300;
-      
-      // 创建粒子
-      function createParticles() {
-        for (let i = 0; i < particleCount; i++) {
-          const particle = document.createElement('div');
-          
-          // 随机大小
-          const size = Math.random() * 2 + 1;
-          
-          // 随机位置
-          const posX = Math.random() * 100;
-          const posY = Math.random() * 100;
-          
-          // 随机颜色 - 主要使用蓝色和白色
-          const colors = ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#FFFFFF'];
-          const color = colors[Math.floor(Math.random() * colors.length)];
-          
-          // 随机动画延迟
-          const delay = Math.random() * 3;
-          
-          // 设置粒子样式
-          particle.style.position = 'absolute';
-          particle.style.width = `${size}px`;
-          particle.style.height = `${size}px`;
-          particle.style.backgroundColor = color;
-          particle.style.borderRadius = '50%';
-          particle.style.left = `${posX}%`;
-          particle.style.top = `${posY}%`;
-          particle.style.opacity = '0';
-          particle.style.transition = `all ${Math.random() * 8 + 5}s ease ${delay}s`;
-          
-          particlesContainer.appendChild(particle);
-        }
-      }
-      
-      // 初始化粒子
-      createParticles();
-      
-      // 自动开始粒子特效
-      setTimeout(() => {
-        // 激活粒子动画
-        const particles = particlesContainer.querySelectorAll('div');
-        particles.forEach(particle => {
-          // 随机目标位置（围绕中心）
-          const angle = Math.random() * Math.PI * 2;
-          const distance = Math.random() * 30 + 20;
-          const targetX = 50 + Math.cos(angle) * distance;
-          const targetY = 50 + Math.sin(angle) * distance;
-          
-          // 随机动画持续时间 - 更慢
-          const duration = Math.random() * 5 + 4;
-          
-          // 设置粒子动画
-          particle.style.transition = `all ${duration}s ease-in-out`;
-          particle.style.opacity = '1';
-          particle.style.left = `${targetX}%`;
-          particle.style.top = `${targetY}%`;
-          
-          // 粒子到达目标位置后开始向中心汇聚 - 更慢
-          setTimeout(() => {
-            particle.style.transition = `all ${Math.random() * 4 + 5}s ease-in-out`;
-            particle.style.left = '50%';
-            particle.style.top = '50%';
-            particle.style.opacity = '0';
-            particle.style.transform = 'scale(0.5)';
-          }, duration * 1000);
-        });
-        
-        // 显示加载进度
-        setTimeout(() => {
-          // 模拟加载进度
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += Math.random() * 5;
-            if (progress >= 100) {
-              progress = 100;
-              clearInterval(progressInterval);
-              
-              // 加载完成后显示皓月光辉效果
-              setTimeout(() => {
-                const centerGlow = document.createElement('div');
-                centerGlow.style.position = 'absolute';
-                centerGlow.style.width = '200px';
-                centerGlow.style.height = '200px';
-                centerGlow.style.borderRadius = '50%';
-                centerGlow.style.left = '50%';
-                centerGlow.style.top = '50%';
-                centerGlow.style.transform = 'translate(-50%, -50%)';
-                centerGlow.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-                centerGlow.style.boxShadow = '0 0 50px 20px rgba(255, 255, 255, 0.5)';
-                centerGlow.style.opacity = '0';
-                centerGlow.style.transition = 'opacity 1s ease';
-                blackholeEntry.appendChild(centerGlow);
-                
-                // 显示白光效果
-                setTimeout(() => {
-                  centerGlow.style.opacity = '1';
-                  
-                  // 白光效果后进入主页面
-                  setTimeout(() => {
-                    blackholeEntry.style.opacity = '0';
-                    blackholeEntry.style.transition = 'opacity 1s ease';
-                    
-                    setTimeout(() => {
-                      blackholeEntry.style.display = 'none';
-                      document.body.style.overflow = 'auto';
-                      
-                      // 进入首页
-                      navigateTo('home');
-                    }, 1000);
-                  }, 500);
-                }, 500);
-              }, 500);
-            }
-            
-            progressBar.style.width = `${progress}%`;
-            progressPercent.textContent = `${Math.floor(progress)}%`;
-          }, 300);
-        }, 2000);
-      }, 500);
-    });
-    
-    // 当前日期和时间
-    function updateDateTime() {
-      const now = new Date();
-      const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-      const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
-      
-      document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN', dateOptions);
-      document.getElementById('current-time').textContent = now.toLocaleTimeString('zh-CN', timeOptions);
-    }
-    
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-    
-    // 页面导航
-    function navigateTo(pageId) {
-      // 检查是否是管理员页面且未登录
-      if (pageId === 'admin-panel' && !isAdminLoggedIn()) {
-        // 显示登录模态框
-        document.getElementById('login-modal').classList.remove('hidden');
-        // 切换到管理员登录表单
-        document.getElementById('admin-login-tab').click();
-        return;
-      }
-      
-      // 隐藏所有页面
-      document.querySelectorAll('.page-section').forEach(page => {
-        page.classList.add('hidden');
-      });
-      
-      // 显示目标页面
-      document.getElementById(`${pageId}-page`).classList.remove('hidden');
-      
-      // 更新底部导航栏状态
-      document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-        if (link.dataset.page === pageId) {
-          link.classList.add('active');
-        }
-      });
-    }
-    
-    // 检查管理员是否已登录
-    function isAdminLoggedIn() {
-      // 这里可以根据实际情况实现登录状态检查
-      // 目前简单模拟，假设管理员页面显示即为已登录
-      return !document.getElementById('admin-panel-page').classList.contains('hidden');
-    }
-    
-    // 底部导航栏点击事件
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', () => {
-        navigateTo(link.dataset.page);
-      });
-    });
-    
-    // 移动端菜单切换
-    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
-      const mobileMenu = document.getElementById('mobile-menu');
-      mobileMenu.classList.toggle('hidden');
-    });
-    
-    // 登录模态框
-    document.getElementById('login-btn').addEventListener('click', () => {
-      document.getElementById('login-modal').classList.remove('hidden');
-    });
-    
-    document.getElementById('login-modal-btn').addEventListener('click', () => {
-      document.getElementById('login-modal').classList.remove('hidden');
-    });
-    
-    document.getElementById('close-login-modal').addEventListener('click', () => {
-      document.getElementById('login-modal').classList.add('hidden');
-    });
-    
-    // 登录表单切换
-    document.getElementById('user-login-tab').addEventListener('click', () => {
-      document.getElementById('user-login-tab').classList.add('border-primary', 'text-primary');
-      document.getElementById('user-login-tab').classList.remove('border-gray-700', 'text-gray-400');
-      document.getElementById('admin-login-tab').classList.add('border-gray-700', 'text-gray-400');
-      document.getElementById('admin-login-tab').classList.remove('border-primary', 'text-primary');
-      document.getElementById('user-login-form').classList.remove('hidden');
-      document.getElementById('admin-login-form').classList.add('hidden');
-    });
-    
-    document.getElementById('admin-login-tab').addEventListener('click', () => {
-      document.getElementById('admin-login-tab').classList.add('border-primary', 'text-primary');
-      document.getElementById('admin-login-tab').classList.remove('border-gray-700', 'text-gray-400');
-      document.getElementById('user-login-tab').classList.add('border-gray-700', 'text-gray-400');
-      document.getElementById('user-login-tab').classList.remove('border-primary', 'text-primary');
-      document.getElementById('admin-login-form').classList.remove('hidden');
-      document.getElementById('user-login-form').classList.add('hidden');
-    });
-    
-    // 用户登录
-    document.getElementById('user-login-btn').addEventListener('click', () => {
-      const username = document.getElementById('user-username').value;
-      const password = document.getElementById('user-password').value;
-      
-      if (!username || !password) {
-        alert('请输入用户名和密码');
-        return;
-      }
-      
-      // 模拟登录成功
-      document.getElementById('login-modal').classList.add('hidden');
-      document.getElementById('not-logged-in').classList.add('hidden');
-      document.getElementById('logged-in').classList.remove('hidden');
-    });
-    
-    // 管理员登录
-    document.getElementById('admin-login-btn').addEventListener('click', () => {
-      const username = document.getElementById('admin-username').value;
-      const password = document.getElementById('admin-password').value;
-      const code = document.getElementById('admin-code').value;
-      
-      if (!username || !password || !code) {
-        alert('请输入管理员账号、密码和验证码');
-        return;
-      }
-      
-      if (code !== '8A7C') {
-        alert('验证码错误，请重新输入');
-        return;
-      }
-      
-      // 模拟登录成功
-      document.getElementById('login-modal').classList.add('hidden');
-      
-      // 显示管理员导航入口
-      document.getElementById('admin-nav-link').classList.remove('hidden');
-      
-      // 导航到管理员后台页面
-      navigateTo('admin-panel');
-    });
-    
-    // 管理员退出登录
-    document.getElementById('admin-logout-btn').addEventListener('click', () => {
-      // 隐藏管理员导航入口
-      document.getElementById('admin-nav-link').classList.add('hidden');
-      
-      // 导航到首页
-      navigateTo('home');
-      
-      // 提示退出成功
-      alert('管理员已成功退出登录');
-    });
-    
-    // 捐赠功能
-    function donate() {
-      const donationAmount = document.getElementById('donation-amount').value;
-      if (!donationAmount || donationAmount <= 0) {
-        alert('请输入有效的捐赠金额');
-        return;
-      }
-      
-      // 显示捐赠成功提示
-      document.getElementById('donation-success').classList.remove('hidden');
-    }
-    
-    document.getElementById('close-donation-success').addEventListener('click', () => {
-      document.getElementById('donation-success').classList.add('hidden');
-    });
-    
-    // 文案生成功能
-    document.getElementById('generate-content-btn').addEventListener('click', () => {
-      const contentLoading = document.getElementById('content-loading');
-      const contentResult = document.getElementById('content-result');
-      
-      // 显示加载状态
-      contentLoading.classList.remove('hidden');
-      contentResult.classList.add('hidden');
-      
-      // 模拟API请求延迟
-      setTimeout(() => {
-        // 隐藏加载状态，显示结果
-        contentLoading.classList.add('hidden');
-        contentResult.classList.remove('hidden');
-      }, 1500);
-    });
-    
-    // 功能回测
-    document.getElementById('run-backtest-btn').addEventListener('click', () => {
-      const backtestLoading = document.getElementById('backtest-loading');
-      const backtestResult = document.getElementById('backtest-result');
-      
-      // 显示加载状态
-      backtestLoading.classList.remove('hidden');
-      backtestResult.classList.add('hidden');
-      
-      // 模拟回测延迟
-      setTimeout(() => {
-        // 隐藏加载状态，显示结果
-        backtestLoading.classList.add('hidden');
-        backtestResult.classList.remove('hidden');
-        
-        // 初始化回测图表
-        initBacktestChart();
-      }, 2000);
-    });
-    
-    // 初始化回测图表
-    function initBacktestChart() {
-      const ctx = document.getElementById('backtest-chart').getContext('2d');
-      
-      // 生成模拟数据
-      const dates = [];
-      const strategyData = [];
-      const benchmarkData = [];
-      
-      let strategyValue = 100000;
-      let benchmarkValue = 100000;
-      
-      // 生成过去5年的数据，每月一个点
-      const today = new Date();
-      for (let i = 60; i >= 0; i--) {
-        const date = new Date();
-        date.setMonth(today.getMonth() - i);
-        dates.push(date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short' }));
-        
-        // 模拟策略收益
-        const strategyReturn = (Math.random() * 4 - 1.5) / 100; // -1.5% 到 2.5%
-        strategyValue *= (1 + strategyReturn);
-        strategyData.push(strategyValue);
-        
-        // 模拟基准收益
-        const benchmarkReturn = (Math.random() * 3 - 1.5) / 100; // -1.5% 到 1.5%
-        benchmarkValue *= (1 + benchmarkReturn);
-        benchmarkData.push(benchmarkValue);
-      }
-      
-      // 创建图表
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: dates,
-          datasets: [
-            {
-              label: '皓月量化策略',
-              data: strategyData,
-              borderColor: '#3B82F6',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-              borderWidth: 2,
-              pointRadius: 0,
-              tension: 0.4,
-              fill: true
-            },
-            {
-              label: '沪深300指数',
-              data: benchmarkData,
-              borderColor: '#9CA3AF',
-              borderWidth: 2,
-              pointRadius: 0,
-              tension: 0.4,
-              borderDash: [5, 5],
-              fill: false
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-              labels: {
-                color: '#D1D5DB'
-              }
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: function(context) {
-                  let label = context.dataset.label || '';
-                  if (label) {
-                    label += ': ';
-                  }
-                  if (context.parsed.y !== null) {
-                    label += new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(context.parsed.y);
-                  }
-                  return label;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: {
-                color: 'rgba(255, 255, 255, 0.05)'
-              },
-              ticks: {
-                color: '#9CA3AF',
-                maxTicksLimit: 12
-              }
-            },
-            y: {
-              grid: {
-                color: 'rgba(255, 255, 255, 0.05)'
-              },
-              ticks: {
-                color: '#9CA3AF',
-                callback: function(value) {
-                  return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', notation: 'compact', compactDisplay: 'short' }).format(value);
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-    
-    // 初始化图表
+  <!-- 引入导航和认证模块 -->
+  <script type="module" src="src/js/modules/navigation.js" defer></script>
+  <script type="module" src="src/js/modules/authModule.js" defer></script>
+  
+  <!-- 引入黑洞入口界面和量子粒子特效模块 -->
+  <script type="module" src="src/js/modules/blackholeEntry.js" defer></script>
+  
+  <!-- 初始化图表系统 -->
+  <script type="module">
+    // 初始化图表系统
     function initCharts() {
       // 上证指数小图表
-      const shCtx = document.getElementById('sh-index-chart').getContext('2d');
-      new Chart(shCtx, {
-        type: 'line',
-        data: {
-          labels: Array(30).fill(''),
-          datasets: [{
-            data: [3720, 3735, 3728, 3745, 3760, 3752, 3740, 3755, 3770, 3785, 3775, 3765, 3775, 3790, 3805, 3795, 3785, 3795, 3810, 3825, 3815, 3805, 3815, 3830, 3845, 3835, 3825, 3835, 3850, 3826],
-            borderColor: '#EF4444',
-            borderWidth: 2,
-            pointRadius: 0,
-            tension: 0.4,
-            fill: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              enabled: false
-            }
+      const shCtx = document.getElementById('sh-index-chart');
+      if (shCtx) {
+        const ctx = shCtx.getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: Array(30).fill(''),
+            datasets: [{
+              data: [3720, 3735, 3728, 3745, 3760, 3752, 3740, 3755, 3770, 3785, 3775, 3765, 3775, 3790, 3805, 3795, 3785, 3795, 3810, 3825, 3815, 3805, 3815, 3830, 3845, 3835, 3825, 3835, 3850, 3826],
+              borderColor: '#EF4444',
+              borderWidth: 2,
+              pointRadius: 0,
+              tension: 0.4,
+              fill: false
+            }]
           },
-          scales: {
-            x: {
-              display: false
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                enabled: false
+              }
             },
-            y: {
-              display: false
+            scales: {
+              x: {
+                display: false
+              },
+              y: {
+                display: false
+              }
             }
           }
-        }
-      });
-      
-      // 深证成指小图表
-      const szCtx = document.getElementById('sz-index-chart').getContext('2d');
-      new Chart(szCtx, {
-        type: 'line',
-        data: {
-          labels: Array(30).fill(''),
-          datasets: [{
-            data: [12300, 12350, 12320, 12380, 12420, 12400, 12370, 12410, 12450, 12490, 12460, 12430, 12470, 12510, 12550, 12520, 12490, 12530, 12570, 12610, 12580, 12550, 12590, 12630, 12670, 12640, 12610, 12650, 12690, 12584],
-            borderColor: '#EF4444',
-            borderWidth: 2,
-            pointRadius: 0,
-            tension: 0.4,
-            fill: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              enabled: false
-            }
-          },
-          scales: {
-            x: {
-              display: false
-            },
-            y: {
-              display: false
-            }
-          }
-        }
-      });
+        });
+      }
     }
-    </script>
+    
+    // 导出initCharts函数供其他模块使用
+    window.initCharts = initCharts;
+  </script>
+  
+  <!-- 引入深证成指图表模块 -->
+  <script type="module" src="src/js/modules/szIndexChart.js" defer></script>
 </body>
 </html>

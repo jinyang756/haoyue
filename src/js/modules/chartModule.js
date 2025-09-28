@@ -396,3 +396,97 @@ function generateBenchmarkData(strategyData) {
     return value * 0.8 + (Math.random() - 0.5) * 2;
   });
 }
+
+/**
+ * 初始化量化策略图表
+ * 用于量化选股页面的策略表现展示
+ */
+export function initQuantStrategyChart() {
+  // 获取图表容器
+  const quantChartCanvas = document.getElementById('quant-strategy-chart');
+  
+  // 检查图表容器和Chart库是否存在
+  if (!quantChartCanvas || typeof Chart === 'undefined') {
+    console.log('量化策略图表容器不存在或Chart库未加载');
+    return;
+  }
+  
+  try {
+    // 销毁可能存在的旧图表
+    const existingChart = Chart.getChart(quantChartCanvas);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    // 生成模拟数据
+    const dataLength = 30;
+    const strategyData = generateBacktestData(dataLength);
+    const benchmarkData = generateBenchmarkData(strategyData);
+    const dates = generateDates(dataLength);
+    
+    // 创建新图表
+    new Chart(quantChartCanvas, {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [
+          {
+            label: '皓月量化策略',
+            data: strategyData,
+            borderColor: '#3B82F6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: '沪深300基准',
+            data: benchmarkData,
+            borderColor: '#EF4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: '#E5E7EB'
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              color: 'rgba(107, 114, 128, 0.2)'
+            },
+            ticks: {
+              color: '#9CA3AF'
+            }
+          },
+          y: {
+            grid: {
+              color: 'rgba(107, 114, 128, 0.2)'
+            },
+            ticks: {
+              color: '#9CA3AF',
+              callback: function(value) {
+                return value.toFixed(2) + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('初始化量化策略图表失败:', error);
+  }
+}

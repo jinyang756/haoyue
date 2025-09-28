@@ -1,64 +1,60 @@
-// 认证模块 - 处理用户登录、注册和管理员验证
+// 认证模块
+import { LoginSecurity } from '../utils/security.js';
+import { FormValidator, ValidationRules, initFormValidations } from '../utils/formValidator.js';
 
-// 用户认证数据存储
+// 当前用户状态
 let currentUser = null;
 let isAdmin = false;
 
-// 模拟用户数据库
-const mockUsers = [
-  { id: 1, username: 'admin', password: 'admin123', isAdmin: true },
-  { id: 2, username: 'user', password: 'user123', isAdmin: false }
-];
+// 当前日期和时间
+function updateDateTime() {
+  const now = new Date();
+  const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+  
+  const dateElement = document.getElementById('current-date');
+  const timeElement = document.getElementById('current-time');
+  
+  if (dateElement && timeElement) {
+    dateElement.textContent = now.toLocaleDateString('zh-CN', dateOptions);
+    timeElement.textContent = now.toLocaleTimeString('zh-CN', timeOptions);
+  }
+}
 
-// 初始化认证UI
-export function initAuthUI() {
-  // 登录模态框相关元素
+// 检查管理员是否已登录
+function isAdminLoggedIn() {
+  // 这里可以根据实际情况实现登录状态检查
+  // 目前简单模拟，假设管理员页面显示即为已登录
+  const adminPanelPage = document.getElementById('admin-panel-page');
+  return adminPanelPage && !adminPanelPage.classList.contains('hidden');
+}
+
+// 初始化登录模态框
+function initLoginModal() {
+  // 登录按钮事件
+  const loginBtn = document.getElementById('login-btn');
+  const loginModalBtn = document.getElementById('login-modal-btn');
+  const closeLoginModalBtn = document.getElementById('close-login-modal');
   const loginModal = document.getElementById('login-modal');
-  const openLoginBtn = document.getElementById('login-btn');
-  const closeLoginBtn = document.getElementById('close-login-modal');
-  const switchToRegister = document.getElementById('switch-to-register');
-  const switchToLogin = document.getElementById('switch-to-login');
-  const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
   
-  // 登录表单提交
-  if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      handleLogin();
-    });
-  }
-  
-  // 注册表单提交
-  if (registerForm) {
-    registerForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      handleRegister();
-    });
-  }
-  
-  // 打开登录模态框
-  if (openLoginBtn && loginModal) {
-    openLoginBtn.addEventListener('click', () => {
-      loginModal.classList.remove('hidden');
-      // 重置表单
-      if (loginForm) {
-        loginForm.reset();
-      }
-      if (registerForm) {
-        registerForm.reset();
-      }
-      // 确保显示登录表单
-      if (loginForm && registerForm) {
-        loginForm.classList.remove('hidden');
-        registerForm.classList.add('hidden');
+  if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+      if (loginModal) {
+        loginModal.classList.remove('hidden');
       }
     });
   }
   
-  // 关闭登录模态框
-  if (closeLoginBtn && loginModal) {
-    closeLoginBtn.addEventListener('click', () => {
+  if (loginModalBtn) {
+    loginModalBtn.addEventListener('click', () => {
+      if (loginModal) {
+        loginModal.classList.remove('hidden');
+      }
+    });
+  }
+  
+  if (closeLoginModalBtn && loginModal) {
+    closeLoginModalBtn.addEventListener('click', () => {
       loginModal.classList.add('hidden');
     });
   }
@@ -71,141 +67,120 @@ export function initAuthUI() {
       }
     });
   }
+}
+
+// 初始化捐赠功能
+function initDonation() {
+  const donateBtn = document.getElementById('donate-btn');
+  const donateModal = document.getElementById('donate-modal');
+  const closeDonateModalBtn = document.getElementById('close-donate-modal');
   
-  // 切换到注册表单
-  if (switchToRegister && loginForm && registerForm) {
-    switchToRegister.addEventListener('click', () => {
-      loginForm.classList.add('hidden');
-      registerForm.classList.remove('hidden');
+  if (donateBtn && donateModal) {
+    donateBtn.addEventListener('click', () => {
+      donateModal.classList.remove('hidden');
     });
   }
   
-  // 切换到登录表单
-  if (switchToLogin && loginForm && registerForm) {
-    switchToLogin.addEventListener('click', () => {
-      registerForm.classList.add('hidden');
-      loginForm.classList.remove('hidden');
+  if (closeDonateModalBtn && donateModal) {
+    closeDonateModalBtn.addEventListener('click', () => {
+      donateModal.classList.add('hidden');
+    });
+  }
+}
+
+// 初始化文案生成功能
+function initContentGeneration() {
+  const contentGenBtn = document.getElementById('content-gen-btn');
+  const contentGenModal = document.getElementById('content-gen-modal');
+  const closeContentGenModalBtn = document.getElementById('close-content-gen-modal');
+  
+  if (contentGenBtn && contentGenModal) {
+    contentGenBtn.addEventListener('click', () => {
+      contentGenModal.classList.remove('hidden');
     });
   }
   
-  // 退出登录按钮
-  const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', handleLogout);
+  if (closeContentGenModalBtn && contentGenModal) {
+    closeContentGenModalBtn.addEventListener('click', () => {
+      contentGenModal.classList.add('hidden');
+    });
+  }
+}
+
+// 初始化功能回测
+function initBacktest() {
+  const backtestBtn = document.getElementById('backtest-btn');
+  const backtestModal = document.getElementById('backtest-modal');
+  const closeBacktestModalBtn = document.getElementById('close-backtest-modal');
+  
+  if (backtestBtn && backtestModal) {
+    backtestBtn.addEventListener('click', () => {
+      backtestModal.classList.remove('hidden');
+    });
   }
   
-  return {
-    login: handleLogin,
-    logout: handleLogout,
-    register: handleRegister
-  };
+  if (closeBacktestModalBtn && backtestModal) {
+    closeBacktestModalBtn.addEventListener('click', () => {
+      backtestModal.classList.add('hidden');
+    });
+  }
 }
 
 // 处理用户登录
-function handleLogin() {
-  const username = document.getElementById('login-username')?.value;
-  const password = document.getElementById('login-password')?.value;
-  const loginError = document.getElementById('login-error');
-  const loginBtn = document.getElementById('login-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  
-  // 查找用户
-  const user = mockUsers.find(u => u.username === username && u.password === password);
-  
-  if (user) {
-    currentUser = user;
-    isAdmin = user.isAdmin;
-    
-    // 隐藏错误消息
-    if (loginError) {
-      loginError.classList.add('hidden');
+async function handleLogin(username, password) {
+  try {
+    // 检查账户是否被锁定
+    const isLocked = await LoginSecurity.isAccountLocked(username);
+    if (isLocked) {
+      const remainingTime = await LoginSecurity.getLockRemainingTime(username);
+      alert(`账户已被锁定，请在${remainingTime}分钟后重试`);
+      return false;
     }
     
-    // 更新UI
-    if (loginBtn && logoutBtn) {
-      loginBtn.classList.add('hidden');
-      logoutBtn.classList.remove('hidden');
-    }
-    
-    // 关闭模态框
-    const loginModal = document.getElementById('login-modal');
-    if (loginModal) {
-      loginModal.classList.add('hidden');
-    }
-    
-    // 显示成功消息
-    alert('登录成功！欢迎回来，' + username);
-    
-    // 如果是管理员，显示管理员相关功能
-    if (isAdmin) {
+    // 简单模拟登录验证
+    if (username === 'admin' && password === 'admin123') {
+      currentUser = username;
+      isAdmin = true;
+      
+      // 登录成功，重置失败次数
+      await LoginSecurity.resetFailedAttempts(username);
+      
+      // 更新UI
+      const loginBtn = document.getElementById('login-btn');
+      const logoutBtn = document.getElementById('logout-btn');
+      if (loginBtn && logoutBtn) {
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+      }
+      
+      // 显示管理员功能
       showAdminFeatures();
+      
+      // 关闭登录模态框
+      const loginModal = document.getElementById('login-modal');
+      if (loginModal) {
+        loginModal.classList.add('hidden');
+      }
+      
+      return true;
     }
-  } else {
-    // 显示错误消息
-    if (loginError) {
-      loginError.classList.remove('hidden');
-      loginError.textContent = '用户名或密码错误';
+    
+    // 登录失败，记录失败次数
+    const failedAttempts = await LoginSecurity.recordFailedAttempt(username);
+    const maxAttempts = LoginSecurity.MAX_FAILED_ATTEMPTS;
+    
+    // 提示用户剩余尝试次数
+    if (failedAttempts < maxAttempts) {
+      alert(`用户名或密码错误，您还有${maxAttempts - failedAttempts}次尝试机会`);
+    } else {
+      alert(`连续${maxAttempts}次登录失败，账户已被锁定${LoginSecurity.LOCK_DURATION}分钟`);
     }
-  }
-}
-
-// 处理用户注册
-function handleRegister() {
-  const username = document.getElementById('register-username')?.value;
-  const password = document.getElementById('register-password')?.value;
-  const confirmPassword = document.getElementById('register-confirm-password')?.value;
-  const registerError = document.getElementById('register-error');
-  
-  // 验证输入
-  if (!username || !password || !confirmPassword) {
-    if (registerError) {
-      registerError.classList.remove('hidden');
-      registerError.textContent = '请填写所有字段';
-    }
-    return;
+  } catch (error) {
+    console.error('登录过程出错:', error);
+    alert('登录过程中发生错误，请稍后重试');
   }
   
-  if (password !== confirmPassword) {
-    if (registerError) {
-      registerError.classList.remove('hidden');
-      registerError.textContent = '两次输入的密码不一致';
-    }
-    return;
-  }
-  
-  // 检查用户名是否已存在
-  if (mockUsers.find(u => u.username === username)) {
-    if (registerError) {
-      registerError.classList.remove('hidden');
-      registerError.textContent = '用户名已存在';
-    }
-    return;
-  }
-  
-  // 创建新用户
-  const newUser = {
-    id: mockUsers.length + 1,
-    username: username,
-    password: password,
-    isAdmin: false
-  };
-  
-  mockUsers.push(newUser);
-  
-  // 隐藏错误消息
-  if (registerError) {
-    registerError.classList.add('hidden');
-  }
-  
-  // 切换回登录表单
-  const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-  if (loginForm && registerForm) {
-    registerForm.classList.add('hidden');
-    loginForm.classList.remove('hidden');
-  }
-  
-  alert('注册成功！请使用新账号登录。');
+  return false;
 }
 
 // 处理用户登出
@@ -243,6 +218,115 @@ function hideAdminFeatures() {
   });
 }
 
+// 初始化认证UI
+function initAuthUI() {
+  // 初始化日期时间更新
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
+  
+  // 初始化登录模态框
+  initLoginModal();
+  
+  // 初始化捐赠功能
+  initDonation();
+  
+  // 初始化文案生成功能
+  initContentGeneration();
+  
+  // 初始化功能回测
+  initBacktest();
+  
+  // 绑定登出按钮事件
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
+  }
+  
+  // 初始化表单验证功能
+  initFormValidations();
+  
+  // 初始化用户登录表单验证
+  const userLoginForm = document.getElementById('user-login-form');
+  if (userLoginForm) {
+    // 创建表单验证器实例
+    const userValidator = new FormValidator('user-login-form');
+    
+    // 添加验证规则
+    userValidator.addValidation('login-username', {
+      required: true,
+      requiredMessage: '请输入用户名',
+      minLength: 3,
+      minLengthMessage: '用户名长度不能少于3个字符',
+      maxLength: 20,
+      maxLengthMessage: '用户名长度不能超过20个字符'
+    });
+    
+    userValidator.addValidation('login-password', {
+      required: true,
+      requiredMessage: '请输入密码',
+      minLength: 6,
+      minLengthMessage: '密码长度不能少于6个字符'
+    });
+    
+    // 初始化验证器
+    userValidator.init();
+    
+    // 监听表单验证通过事件
+    userLoginForm.addEventListener('formValidated', async (e) => {
+      const { loginUsername, loginPassword } = e.detail.formData;
+      await handleLogin(loginUsername, loginPassword);
+    });
+    
+    // 添加提交按钮点击事件
+    const userLoginBtn = document.getElementById('user-login-btn');
+    if (userLoginBtn) {
+      userLoginBtn.addEventListener('click', () => {
+        userValidator.validateAll();
+      });
+    }
+  }
+  
+  // 初始化管理员登录表单验证
+  const adminLoginForm = document.getElementById('admin-login-form');
+  if (adminLoginForm) {
+    // 创建表单验证器实例
+    const adminValidator = new FormValidator('admin-login-form');
+    
+    // 添加验证规则
+    adminValidator.addValidation('admin-username', {
+      required: true,
+      requiredMessage: '请输入管理员用户名',
+      minLength: 3,
+      minLengthMessage: '用户名长度不能少于3个字符'
+    });
+    
+    adminValidator.addValidation('admin-password', {
+      required: true,
+      requiredMessage: '请输入管理员密码',
+      minLength: 6,
+      minLengthMessage: '密码长度不能少于6个字符'
+    });
+    
+    // 初始化验证器
+    adminValidator.init();
+    
+    // 监听表单验证通过事件
+    adminLoginForm.addEventListener('formValidated', async (e) => {
+      const { adminUsername, adminPassword } = e.detail.formData;
+      await handleLogin(adminUsername, adminPassword);
+    });
+    
+    // 添加提交按钮点击事件
+    const adminLoginBtn = document.getElementById('admin-login-btn');
+    if (adminLoginBtn) {
+      adminLoginBtn.addEventListener('click', () => {
+        adminValidator.validateAll();
+      });
+    }
+  }
+}
+
+// 导出函数
 // 检查登录状态
 export function checkLoginStatus() {
   return currentUser !== null;
@@ -257,3 +341,5 @@ export function checkAdminStatus() {
 export function getCurrentUser() {
   return currentUser;
 }
+
+export { initAuthUI, handleLogin, handleLogout };
