@@ -30,7 +30,8 @@ export async function importModule(modulePath, options = {}) {
     const fullPath = modulePath.startsWith('.') ? modulePath : `../modules/${modulePath}`;
     
     // 动态导入模块
-    const module = await import(fullPath);
+    // 使用@vite-ignore注释告诉Vite不要分析这个动态导入路径
+    const module = await import(/* @vite-ignore */ fullPath);
     
     return module;
   } catch (error) {

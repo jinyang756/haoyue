@@ -117,7 +117,7 @@ function initPerformanceOptimizations() {
   
   // 9. 初始化性能控制面板 - 在开发环境下启用
   try {
-    if (process.env?.NODE_ENV !== 'production') {
+    if (import.meta.env?.DEV) {
       initPerformancePanel();
       console.log('性能控制面板初始化成功');
     }
@@ -309,9 +309,16 @@ function preloadCommonImages() {
  * 注册Service Worker
  */
 function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && import.meta.env?.PROD) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/src/js/serviceWorker.js')
+      // 在开发环境中不注册Service Worker，避免开发干扰
+      if (import.meta.env?.DEV) {
+        console.log('开发环境中不注册Service Worker');
+        return;
+      }
+      
+      // 在生产环境中注册Service Worker
+      navigator.serviceWorker.register('/serviceWorker.js')
         .then(registration => {
           console.log('Service Worker 注册成功:', registration.scope);
         })

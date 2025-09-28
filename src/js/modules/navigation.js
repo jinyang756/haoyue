@@ -93,8 +93,9 @@ async function loadPageModule(pageId, params = {}) {
     console.log(`开始加载页面模块: ${pageId}`);
     
     // 根据页面ID加载对应的模块
-    const modulePath = `./pages/${pageId}Page.js`;
-    const module = await importModule(modulePath, {
+  // 注意：路径需要相对于当前文件的位置
+  const modulePath = `../modules/pages/${pageId}Page.js`;
+  const module = await importModule(modulePath, {
       loadingId: `${pageId}-page`,
       retries: 2,
       retryDelay: 500,
