@@ -18,7 +18,9 @@
   "author": "皓月团队",
   "license": "MIT",
   "dependencies": {
+    "@flags-sdk/statsig": "^0.2.2",
     "chart.js": "^4.4.8",
+    "flags": "^4.0.1",
     "font-awesome": "^4.7.0"
   },
   "devDependencies": {

@@ -44,3 +44,4 @@ coverage
 *.temp
 .cache
 .vercel
+.env*.local

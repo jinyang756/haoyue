@@ -3,6 +3,7 @@
  */
 import { initMarketIndexCharts } from '../chartModule.js';
 import { navigateTo } from '../navigation.js';
+import { createFeatureFlag } from '../../flags.js';
 
 /**
  * 初始化首页功能
@@ -10,8 +11,15 @@ import { navigateTo } from '../navigation.js';
 export async function initHomePage() {
   console.log('首页模块已加载');
   
+  // 使用功能标志
+  const myFeatureFlag = await createFeatureFlag("my_feature_flag")();
+  console.log('my_feature_flag状态:', myFeatureFlag);
+  
   // 动态加载HTML模板
   await loadHomePageTemplate();
+  
+  // 显示功能标志状态
+  showFeatureFlagStatus(myFeatureFlag);
   
   // 初始化市场指数图表
   initMarketCharts();
@@ -24,6 +32,30 @@ export async function initHomePage() {
   
   // 绑定事件
   bindEvents();
+}
+
+/**
+ * 显示功能标志状态
+ */
+function showFeatureFlagStatus(enabled) {
+  try {
+    // 创建一个显示功能标志状态的元素
+    const statusElement = document.createElement('div');
+    statusElement.className = 'fixed top-4 right-4 bg-gray-900 border border-gray-800 rounded-lg p-3 shadow-lg z-50';
+    statusElement.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium text-white">my_feature_flag</span>
+        <span class="px-2 py-1 text-xs rounded ${enabled ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}">
+          ${enabled ? '开启' : '关闭'}
+        </span>
+      </div>
+    `;
+    
+    // 添加到body
+    document.body.appendChild(statusElement);
+  } catch (error) {
+    console.error('显示功能标志状态失败:', error);
+  }
 }
 
 /**
