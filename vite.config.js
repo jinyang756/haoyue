@@ -32,54 +32,11 @@ export default defineConfig({
         assetFileNames: '[name]-[hash].[ext]',
         chunkFileNames: '[name]-[hash].js',
         entryFileNames: '[name]-[hash].js',
-        // 配置manualChunks，实现更精细的代码分割
+        // 简化代码分割逻辑，避免生成空chunk
         manualChunks(id) {
           // 将第三方库单独打包
           if (id.includes('node_modules')) {
-            // 将chart.js相关的包单独打包
-            if (id.includes('chart.js')) {
-              return 'vendor-chartjs';
-            }
-            // 将其他第三方库打包在一起
-            return 'vendor-common';
-          }
-          
-          // 按功能模块分割代码
-          if (id.includes('/src/js/modules/pages/')) {
-            // 将页面组件单独打包
-            const match = id.match(/\/pages\/(.*?)Page\.js$/);
-            if (match) {
-              return `page-${match[1]}`;
-            }
-            return 'pages';
-          }
-          
-          // 将工具函数单独打包
-          if (id.includes('/src/js/utils/')) {
-            // 性能相关的工具函数
-            if (id.includes('performance') || id.includes('cache')) {
-              return 'utils-performance';
-            }
-            // 图片相关的工具函数
-            if (id.includes('image') || id.includes('responsive')) {
-              return 'utils-image';
-            }
-            // 其他工具函数
-            return 'utils-common';
-          }
-          
-          // 将核心模块单独打包
-          if (id.includes('/src/js/modules/')) {
-            // 导航模块
-            if (id.includes('navigation')) {
-              return 'module-navigation';
-            }
-            // 图表模块
-            if (id.includes('chart')) {
-              return 'module-chart';
-            }
-            // 其他核心模块
-            return 'modules-common';
+            return 'vendors';
           }
         }
       }
