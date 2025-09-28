@@ -92,11 +92,23 @@ export function initScrollReveal() {
 export function initMouseFollowEffect(container) {
   if (!container) return;
   
+  // 性能优化：检测设备性能，在低性能设备上禁用效果
+  const isLowPerformance = navigator.hardwareConcurrency <= 2 || window.innerWidth < 768;
+  if (isLowPerformance) {
+    console.log('性能模式：已禁用鼠标跟随效果');
+    return {
+      cleanup: () => {}
+    };
+  }
+  
   let particles = [];
-  const particleCount = 20;
+  // 性能优化：减少粒子数量
+  const particleCount = 10;
   let mouseX = 0;
   let mouseY = 0;
   let animationId = null;
+  let lastMouseMove = Date.now();
+  const updateInterval = 16; // 约60fps
   
   // 创建粒子
   function createParticles() {
@@ -109,7 +121,7 @@ export function initMouseFollowEffect(container) {
       particle.className = 'mouse-particle';
       
       // 随机样式
-      const size = Math.random() * 5 + 2;
+      const size = Math.random() * 4 + 1;
       particle.style.width = `${size}px`;
       particle.style.height = `${size}px`;
       particle.style.background = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.random() * 0.7 + 0.3})`;
@@ -128,38 +140,47 @@ export function initMouseFollowEffect(container) {
         y: 0,
         targetX: 0,
         targetY: 0,
-        speed: Math.random() * 0.1 + 0.02,
+        speed: Math.random() * 0.1 + 0.05, // 稍微增加速度以保持流畅感
         size: size,
         delay: i * 0.05 // 错开每个粒子的移动时间
       });
     }
   }
   
-  // 更新粒子位置
+  // 更新粒子位置 - 性能优化版
   function updateParticles() {
-    particles.forEach((particle, index) => {
-      // 计算目标位置（根据粒子索引产生偏移）
-      const angle = (index * 45) * (Math.PI / 180);
-      const distance = index * 10;
-      
-      particle.targetX = mouseX + Math.cos(angle) * distance;
-      particle.targetY = mouseY + Math.sin(angle) * distance;
-      
-      // 使用缓动函数使移动更平滑
-      particle.x += (particle.targetX - particle.x) * particle.speed;
-      particle.y += (particle.targetY - particle.y) * particle.speed;
-      
-      // 更新DOM位置
-      particle.element.style.transform = `translate(${particle.x}px, ${particle.y}px)`;
-    });
+    // 性能优化：只有当鼠标移动时才更新粒子
+    const now = Date.now();
+    if (now - lastMouseMove < 1000) { // 鼠标1秒内有移动才更新
+      particles.forEach((particle, index) => {
+        // 计算目标位置（根据粒子索引产生偏移）
+        const angle = (index * 45) * (Math.PI / 180);
+        const distance = index * 8; // 减少距离以减少移动范围
+        
+        particle.targetX = mouseX + Math.cos(angle) * distance;
+        particle.targetY = mouseY + Math.sin(angle) * distance;
+        
+        // 使用缓动函数使移动更平滑
+        particle.x += (particle.targetX - particle.x) * particle.speed;
+        particle.y += (particle.targetY - particle.y) * particle.speed;
+        
+        // 更新DOM位置
+        particle.element.style.transform = `translate(${particle.x}px, ${particle.y}px)`;
+      });
+    }
     
     animationId = requestAnimationFrame(updateParticles);
   }
   
   // 鼠标移动事件处理
   function handleMouseMove(e) {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+    const now = Date.now();
+    // 性能优化：限制鼠标移动事件处理频率
+    if (now - lastMouseMove > updateInterval) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      lastMouseMove = now;
+    }
   }
   
   // 初始化

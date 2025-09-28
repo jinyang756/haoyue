@@ -213,9 +213,20 @@ export function initBacktestChart() {
 export function createParticleEffect(canvas) {
   if (!canvas) return;
   
+  // 性能优化：检测设备性能，在低性能设备上禁用效果
+  const isLowPerformance = navigator.hardwareConcurrency <= 2 || window.innerWidth < 768;
+  if (isLowPerformance) {
+    console.log('性能模式：已禁用图表粒子效果');
+    return {
+      stop: () => {}
+    };
+  }
+  
   const ctx = canvas.getContext('2d');
   let particles = [];
   let animationId = null;
+  let frameCount = 0;
+  const frameSkip = 2; // 每2帧渲染一次，减少CPU使用率
   
   // 设置Canvas尺寸
   function resizeCanvas() {
@@ -227,22 +238,30 @@ export function createParticleEffect(canvas) {
   // 初始化粒子
   function initParticles() {
     particles = [];
-    const particleCount = 100;
+    // 性能优化：减少粒子数量
+    const particleCount = 50;
     
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        size: Math.random() * 3 + 1,
-        speedX: (Math.random() - 0.5) * 0.5,
-        speedY: (Math.random() - 0.5) * 0.5,
-        color: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 0.5 + 0.2})`
+        size: Math.random() * 2 + 0.5, // 减少粒子大小
+        speedX: (Math.random() - 0.5) * 0.3, // 减少粒子速度
+        speedY: (Math.random() - 0.5) * 0.3, // 减少粒子速度
+        color: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 0.4 + 0.1})` // 降低不透明度
       });
     }
   }
   
-  // 动画循环
+  // 动画循环 - 性能优化版
   function animate() {
+    // 性能优化：跳帧渲染
+    frameCount++;
+    if (frameCount % frameSkip !== 0) {
+      animationId = requestAnimationFrame(animate);
+      return;
+    }
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // 绘制黑洞中心
