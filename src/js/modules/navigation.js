@@ -6,22 +6,35 @@ import { showSkeleton, hideSkeleton } from '../utils/skeletonScreens.js';
 // 导入缓存服务
 import { CacheService } from '../utils/cacheService.js';
 
+// 导入动态导入工具
+import { importModule, preloadModulesByRoute } from '../utils/dynamicImport.js';
+
 /**
  * 导航到指定页面 - 实现路由级别的懒加载
  * @param {string} pageId - 页面ID
+ * @param {object} params - 导航参数（可选）
  */
-export function navigateTo(pageId) {
+export function navigateTo(pageId, params = {}) {
   // 检查是否是管理员页面且未登录
   if (pageId === 'admin-panel' && !isAdminLoggedIn()) {
     // 显示登录模态框
-    document.getElementById('login-modal').classList.remove('hidden');
-    // 切换到管理员登录表单
-    document.getElementById('admin-login-tab').click();
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal) {
+      loginModal.classList.remove('hidden');
+      // 切换到管理员登录表单
+      const adminTab = document.getElementById('admin-login-tab');
+      if (adminTab) {
+        adminTab.click();
+      }
+    }
     return;
   }
   
   // 显示骨架屏
   showSkeleton(pageId);
+  
+  // 设置加载状态
+  document.body.classList.add('page-transitioning');
   
   // 隐藏所有页面
   document.querySelectorAll('.page-section').forEach(page => {
@@ -54,76 +67,172 @@ export function navigateTo(pageId) {
       }
       
       // 动态加载页面所需的JavaScript模块
-      return loadPageModule(pageId);
+      return loadPageModule(pageId, params);
     })
     .catch(error => {
       console.error(`导航到页面${pageId}失败:`, error);
       // 即使出错也要隐藏骨架屏
       setTimeout(() => hideSkeleton(pageId), 500);
+      document.body.classList.remove('page-transitioning');
+      
+      // 降级显示错误页面
+      showErrorPage(pageId, error);
     });
 }
 
 /**
  * 动态加载页面模块
  * @param {string} pageId - 页面ID
+ * @param {object} params - 导航参数
  */
-async function loadPageModule(pageId) {
+async function loadPageModule(pageId, params = {}) {
   try {
     console.log(`开始加载页面模块: ${pageId}`);
     
-    // 延迟隐藏骨架屏，确保用户看到加载状态
-    setTimeout(() => hideSkeleton(pageId), 500);
-    
     // 根据页面ID加载对应的模块
-    let module;
-    switch(pageId) {
-      case 'home':
-        module = await import('./pages/homePage.js');
-        if (module.initHomePage) module.initHomePage();
-        break;
-      case 'market-list':
-        module = await import('./pages/marketListPage.js');
-        if (module.initMarketList) module.initMarketList();
-        break;
-      case 'quant-stock':
-        module = await import('./pages/quantStockPage.js');
-        if (module.initQuantStock) module.initQuantStock();
-        break;
-      case 'charity':
-        module = await import('./pages/charityPage.js');
-        if (module.initCharityPage) module.initCharityPage();
-        break;
-      case 'platform-intro':
-        module = await import('./pages/platformIntroPage.js');
-        if (module.initPlatformIntro) module.initPlatformIntro();
-        break;
-      case 'personal-center':
-        module = await import('./pages/personalCenterPage.js');
-        if (module.initPersonalCenter) module.initPersonalCenter();
-        break;
-      case 'api-doc':
-        module = await import('./pages/apiDocPage.js');
-        if (module.initApiDoc) module.initApiDoc();
-        break;
-      case 'admin-panel':
-        module = await import('./pages/adminPanelPage.js');
-        if (module.initAdminPanel) module.initAdminPanel();
-        break;
-      default:
-        console.log(`No specific module found for page: ${pageId}`);
+    const modulePath = `./pages/${pageId}Page.js`;
+    const module = await importModule(modulePath, {
+      loadingId: `${pageId}-page`,
+      retries: 2,
+      retryDelay: 500,
+      onRetry: (attempt) => {
+        console.warn(`加载页面 ${pageId} 失败，正在进行第 ${attempt} 次重试...`);
+      }
+    });
+    
+    // 初始化页面
+    if (module) {
+      const initMethod = getInitMethodForPage(pageId);
+      if (initMethod && typeof module[initMethod] === 'function') {
+        // 使用requestAnimationFrame确保平滑初始化
+        requestAnimationFrame(() => {
+          try {
+            module[initMethod](params);
+          } catch (initError) {
+            console.error(`初始化页面 ${pageId} 失败:`, initError);
+            showErrorNotification(`页面初始化失败: ${initError.message}`);
+          }
+        });
+      }
     }
     
     console.log(`页面模块加载完成: ${pageId}`);
     
+    // 延迟隐藏骨架屏，确保用户看到加载状态
+    setTimeout(() => hideSkeleton(pageId), 500);
+    document.body.classList.remove('page-transitioning');
+    
+    // 预加载相关模块
+    setTimeout(() => {
+      preloadRelatedModules(pageId);
+    }, 300);
+    
     // 触发页面切换事件，通知其他组件
-    const pageChangeEvent = new CustomEvent('pageChange', { detail: { pageId } });
+    const pageChangeEvent = new CustomEvent('pageChange', { detail: { pageId, params } });
     window.dispatchEvent(pageChangeEvent);
     
   } catch (error) {
     console.error(`Error loading module for ${pageId}:`, error);
     // 显示错误提示
     showErrorNotification(`加载页面失败: ${error.message}`);
+    hideSkeleton(pageId);
+    document.body.classList.remove('page-transitioning');
+    
+    // 降级显示错误页面
+    showErrorPage(pageId, error);
   }
+}
+
+/**
+ * 获取页面的初始化方法名
+ * @param {string} pageId - 页面ID
+ * @returns {string} - 初始化方法名
+ */
+function getInitMethodForPage(pageId) {
+  const methodMap = {
+    'home': 'initHomePage',
+    'market-list': 'initMarketList',
+    'quant-stock': 'initQuantStock',
+    'charity': 'initCharityPage',
+    'platform-intro': 'initPlatformIntro',
+    'personal-center': 'initPersonalCenter',
+    'api-doc': 'initApiDoc',
+    'admin-panel': 'initAdminPanel'
+  };
+  
+  return methodMap[pageId] || '';
+}
+
+/**
+ * 根据页面ID预加载相关模块
+ * @param {string} pageId - 当前页面ID
+ */
+function preloadRelatedModules(pageId) {
+  try {
+    // 根据当前页面预加载可能会访问的模块
+    const relatedModules = [];
+    
+    switch (pageId) {
+      case 'home':
+        relatedModules.push('./pages/marketListPage.js');
+        relatedModules.push('./pages/quantStockPage.js');
+        break;
+      case 'market-list':
+        relatedModules.push('./pages/quantStockPage.js');
+        relatedModules.push('./pages/personalCenterPage.js');
+        break;
+      case 'quant-stock':
+        relatedModules.push('./pages/marketListPage.js');
+        break;
+      case 'personal-center':
+        relatedModules.push('./pages/homePage.js');
+        break;
+      case 'admin-panel':
+        relatedModules.push('./pages/marketListPage.js');
+        break;
+    }
+    
+    // 预加载模块
+    if (relatedModules.length > 0) {
+      preloadModulesByRoute(relatedModules);
+    }
+  } catch (error) {
+    console.error('预加载相关模块失败:', error);
+    // 预加载失败不影响主功能
+  }
+}
+
+/**
+ * 显示错误页面
+ * @param {string} pageId - 页面ID
+ * @param {Error} error - 错误对象
+ */
+function showErrorPage(pageId, error) {
+  const targetPage = document.getElementById(`${pageId}-page`);
+  if (!targetPage) return;
+  
+  targetPage.innerHTML = `
+    <div class="error-page container mx-auto px-4 py-16 text-center">
+      <div class="error-icon text-red-500 text-8xl mb-6">⚠️</div>
+      <h2 class="text-3xl font-bold mb-4">页面加载失败</h2>
+      <p class="text-gray-400 mb-8 max-w-md mx-auto">
+        无法加载页面 "${pageId}"。请检查您的网络连接或稍后再试。
+      </p>
+      <button id="retry-button" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition-colors">
+        重试
+      </button>
+    </div>
+  `;
+  
+  // 添加重试按钮事件
+  setTimeout(() => {
+    const retryButton = document.getElementById('retry-button');
+    if (retryButton) {
+      retryButton.addEventListener('click', () => {
+        navigateTo(pageId);
+      });
+    }
+  }, 100);
 }
 
 /**

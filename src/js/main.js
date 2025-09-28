@@ -12,6 +12,12 @@ import { sanitizeInput } from './utils/security.js';
 // 性能优化相关导入
 import { CacheService, fetchWithCache } from './utils/cacheService.js';
 import { initLazyLoad, addLazyLoad } from './utils/lazyLoad.js';
+import { SkeletonManager } from './modules/skeletonScreens.js';
+import { importModule, preloadModulesByRoute } from './utils/dynamicImport.js';
+import { setupLazyLoading as setupImageLazyLoading, preloadImages, isWebPSupported } from './utils/imageOptimizer';
+import { AdvancedCacheManager, CachePriority } from './utils/advancedCache';
+import { PerformanceMonitor } from './utils/performanceMonitor.js';
+import { initPerformancePanel } from './modules/performancePanel.js';
 
 // 全局导航函数（供其他模块使用）
 window.navigateTo = navigateTo;
@@ -66,33 +72,268 @@ function initPerformanceOptimizations() {
   window.CacheService = CacheService;
   window.fetchWithCache = fetchWithCache;
   
-  // 3. 初始化骨架屏（如果需要）
-  initSkeletonScreens();
+  // 3. 初始化骨架屏管理器
+  try {
+    window.skeletonManager = new SkeletonManager();
+    console.log('骨架屏管理器初始化成功');
+  } catch (error) {
+    console.error('骨架屏管理器初始化失败:', error);
+    // 降级处理：仍使用原有的骨架屏初始化
+    initSkeletonScreens();
+  }
+  
+  // 4. 注册Service Worker，提供离线访问和高级缓存功能
+  registerServiceWorker();
+  
+  // 5. 暴露动态导入工具到全局
+  window.importModule = importModule;
+  window.preloadModulesByRoute = preloadModulesByRoute;
+  
+  // 6. 初始化图片优化功能
+  initImageOptimizations();
+  
+  // 7. 初始化高级缓存管理器
+  initAdvancedCache();
+  
+  // 8. 初始化性能监控
+  initPerformanceMonitoring();
+  
+  // 9. 初始化性能控制面板 - 在开发环境下启用
+  try {
+    if (process.env?.NODE_ENV !== 'production') {
+      initPerformancePanel();
+      console.log('性能控制面板初始化成功');
+    }
+  } catch (error) {
+    console.error('性能控制面板初始化失败:', error);
+  }
   
   console.log('性能优化功能初始化完成');
 }
 
 /**
- * 初始化骨架屏
+ * 初始化高级缓存管理器
+ */
+function initAdvancedCache() {
+  try {
+    // 初始化高级缓存管理器
+    AdvancedCacheManager.init();
+    console.log('高级缓存管理器初始化成功');
+    
+    // 全局暴露高级缓存工具
+    window.AdvancedCacheManager = AdvancedCacheManager;
+    window.CachePriority = CachePriority;
+    
+    // 为常用API请求设置高级缓存策略
+    configureApiCacheStrategies();
+    
+  } catch (error) {
+    console.error('高级缓存管理器初始化失败:', error);
+    // 降级处理：继续使用基础缓存服务
+  }
+}
+
+/**
+ * 配置API请求的缓存策略
+ */
+function configureApiCacheStrategies() {
+  try {
+    // 示例：配置不同API的缓存策略
+    console.log('API缓存策略配置完成');
+    
+    // 可以在这里添加更多API缓存策略配置
+    // 例如：为市场数据、用户数据等设置不同的缓存优先级和过期时间
+    
+  } catch (error) {
+    console.error('API缓存策略配置失败:', error);
+  }
+}
+
+/**
+ * 初始化性能监控功能
+ */
+function initPerformanceMonitoring() {
+  try {
+    // 初始化性能监控工具
+    const initialized = PerformanceMonitor.init();
+    
+    if (initialized) {
+      console.log('性能监控功能初始化成功');
+      
+      // 全局暴露性能监控工具
+      window.PerformanceMonitor = PerformanceMonitor;
+      
+      // 为导航功能添加性能标记
+      const originalNavigateTo = window.navigateTo;
+      window.navigateTo = function(pageId, data) {
+        // 创建性能标记
+        const startMark = PerformanceMonitor.mark(`navigation_start_${pageId}`);
+        
+        // 执行原始导航函数
+        const result = originalNavigateTo(pageId, data);
+        
+        // 设置导航完成的测量（通过setTimeout确保在下一个事件循环中执行）
+        setTimeout(() => {
+          const endMark = PerformanceMonitor.mark(`navigation_end_${pageId}`);
+          PerformanceMonitor.measure(`navigation_${pageId}`, `navigation_start_${pageId}`, endMark);
+        }, 0);
+        
+        return result;
+      };
+      
+      // 为常用API请求添加性能监控
+      if (window.fetchWithCache) {
+        const originalFetchWithCache = window.fetchWithCache;
+        window.fetchWithCache = function(url, options = {}) {
+          const startTime = performance.now();
+          
+          // 执行原始的带缓存的fetch
+          return originalFetchWithCache(url, options).then(response => {
+            const endTime = performance.now();
+            // 监控API调用性能
+            PerformanceMonitor.monitorApiCall(url, startTime, endTime, response.ok);
+            return response;
+          }).catch(error => {
+            const endTime = performance.now();
+            // 记录失败的API调用
+            PerformanceMonitor.monitorApiCall(url, startTime, endTime, false);
+            throw error;
+          });
+        };
+      }
+      
+    } else {
+      console.log('性能监控未初始化（采样未命中或已禁用）');
+    }
+  } catch (error) {
+    console.error('性能监控初始化失败:', error);
+    // 降级处理：不影响主功能
+  }
+}
+
+/**
+ * 初始化图片优化功能
+ */
+function initImageOptimizations() {
+  try {
+    console.log('WebP支持状态:', isWebPSupported() ? '支持' : '不支持');
+    
+    // 为主要内容区域设置图片懒加载
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      const imageObserver = setupImageLazyLoading(mainContent, {
+        selector: 'img[data-src]',
+        threshold: 200, // 在图片进入视口前200像素就开始加载
+        quality: 'medium' // 默认中等质量
+      });
+      console.log('图片懒加载功能初始化成功');
+    }
+    
+    // 预加载一些关键的、全局使用的图片
+    preloadCommonImages();
+    
+    // 全局暴露图片优化工具
+    window.setupImageLazyLoading = setupImageLazyLoading;
+    window.preloadImages = preloadImages;
+    
+  } catch (error) {
+    console.error('图片优化功能初始化失败:', error);
+    // 降级处理：不影响主功能
+  }
+}
+
+/**
+ * 预加载常用图片
+ */
+function preloadCommonImages() {
+  try {
+    // 这里可以添加应用中常用的图片URL
+    const commonImages = [
+      // 'path/to/common/image1.png',
+      // 'path/to/common/image2.png'
+    ];
+    
+    if (commonImages.length > 0) {
+      preloadImages(commonImages, {
+        width: 300,
+        quality: 'low',
+        onProgress: (progress) => {
+          console.log(`预加载常用图片 ${progress.index + 1}/${progress.total} - ${progress.success ? '成功' : '失败'}`);
+        }
+      }).then(results => {
+        const successCount = results.filter(r => r.success).length;
+        console.log(`常用图片预加载完成: ${successCount}/${results.length} 成功`);
+      });
+    }
+  } catch (error) {
+    console.error('预加载常用图片失败:', error);
+  }
+}
+
+/**
+ * 注册Service Worker
+ */
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/src/js/serviceWorker.js')
+        .then(registration => {
+          console.log('Service Worker 注册成功:', registration.scope);
+        })
+        .catch(error => {
+          console.error('Service Worker 注册失败:', error);
+        });
+    });
+  }
+}
+
+/**
+ * 初始化骨架屏（降级方案）
+ * 当SkeletonManager初始化失败时使用
  */
 function initSkeletonScreens() {
-  // 可以在这里添加骨架屏的初始化逻辑
+  console.log('使用降级方案初始化骨架屏...');
+  
   // 为主要页面区域添加骨架屏效果
   const pageSections = document.querySelectorAll('.page-section');
   
   pageSections.forEach(section => {
-    // 为每个页面区域添加加载状态类
-    const skeletonClass = `${section.id}-skeleton`;
-    if (document.getElementById(skeletonClass)) {
+    // 提取页面ID（移除-page后缀）
+    const pageId = section.id.replace('-page', '');
+    const skeletonId = `${pageId}-page-skeleton`;
+    
+    if (document.getElementById(skeletonId)) {
       // 骨架屏已存在，无需创建
       return;
     }
     
-    // 简单的骨架屏实现
+    // 创建骨架屏元素
     const skeleton = document.createElement('div');
-    skeleton.id = skeletonClass;
-    skeleton.className = `skeleton-loading fixed inset-0 z-40 bg-gray-900/90 hidden`;
-    skeleton.innerHTML = `
+    skeleton.id = skeletonId;
+    skeleton.className = `skeleton-loading fixed inset-0 z-50 bg-gray-900/95 backdrop-blur-sm hidden transition-opacity duration-300`;
+    
+    // 根据页面ID生成合适的骨架屏内容
+    let skeletonContent = '';
+    if (pageId === 'home') {
+      skeletonContent = generateHomePageSkeleton();
+    } else if (pageId === 'market-list' || pageId === 'quant-stock') {
+      skeletonContent = generateMarketListSkeleton();
+    } else if (pageId === 'personal-center') {
+      skeletonContent = generatePersonalCenterSkeleton();
+    } else if (pageId === 'admin-panel') {
+      skeletonContent = generateAdminPanelSkeleton();
+    } else {
+      // 默认骨架屏
+      skeletonContent = generateDefaultSkeleton();
+    }
+    
+    skeleton.innerHTML = skeletonContent;
+    document.body.appendChild(skeleton);
+  });
+  
+  // 简单的骨架屏生成函数
+  function generateDefaultSkeleton() {
+    return `
       <div class="container mx-auto px-4 py-6">
         <div class="animate-pulse">
           <div class="h-8 bg-gray-800 rounded w-1/3 mb-6"></div>
@@ -103,7 +344,6 @@ function initSkeletonScreens() {
           </div>
           <div class="h-8 bg-gray-800 rounded w-1/4 mb-4"></div>
           <div class="h-64 bg-gray-800 rounded mb-6"></div>
-          <div class="h-8 bg-gray-800 rounded w-1/4 mb-4"></div>
           <div class="space-y-4">
             <div class="h-20 bg-gray-800 rounded"></div>
             <div class="h-20 bg-gray-800 rounded"></div>
@@ -112,9 +352,131 @@ function initSkeletonScreens() {
         </div>
       </div>
     `;
-    
-    document.body.appendChild(skeleton);
-  });
+  }
+  
+  // 简化版的页面骨架屏生成函数
+  function generateHomePageSkeleton() {
+    return `
+      <div class="container mx-auto px-4 py-6">
+        <div class="animate-pulse">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div class="h-12 bg-gray-800 rounded w-1/4 mb-4 md:mb-0"></div>
+            <div class="flex gap-4 w-full md:w-auto">
+              <div class="h-10 bg-gray-800 rounded w-24"></div>
+              <div class="h-10 bg-gray-800 rounded w-24"></div>
+              <div class="h-10 bg-gray-800 rounded w-24"></div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+              <div class="h-6 bg-gray-700 rounded w-1/4 mb-3"></div>
+              <div class="h-12 bg-gray-700 rounded w-1/2 mb-2"></div>
+              <div class="h-4 bg-gray-700 rounded w-1/3"></div>
+            </div>
+            <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+              <div class="h-6 bg-gray-700 rounded w-1/4 mb-3"></div>
+              <div class="h-12 bg-gray-700 rounded w-1/2 mb-2"></div>
+              <div class="h-4 bg-gray-700 rounded w-1/3"></div>
+            </div>
+            <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+              <div class="h-6 bg-gray-700 rounded w-1/4 mb-3"></div>
+              <div class="h-12 bg-gray-700 rounded w-1/2 mb-2"></div>
+              <div class="h-4 bg-gray-700 rounded w-1/3"></div>
+            </div>
+          </div>
+          
+          <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700 mb-8">
+            <div class="h-8 bg-gray-700 rounded w-1/4 mb-6"></div>
+            <div class="h-80 bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function generateMarketListSkeleton() {
+    return `
+      <div class="container mx-auto px-4 py-6">
+        <div class="animate-pulse">
+          <div class="h-8 bg-gray-800 rounded w-1/3 mb-6"></div>
+          <div class="overflow-hidden rounded-xl border border-gray-700">
+            <div class="grid grid-cols-6 bg-gray-800/80 py-3 px-4">
+              ${Array(6).fill().map(() => `<div class="h-4 bg-gray-700 rounded w-1/3"></div>`).join('')}
+            </div>
+            ${Array(5).fill().map(() => `
+              <div class="grid grid-cols-6 py-3 px-4 border-t border-gray-700">
+                ${Array(6).fill().map(() => `<div class="h-4 bg-gray-700 rounded w-1/3"></div>`).join('')}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function generatePersonalCenterSkeleton() {
+    return `
+      <div class="container mx-auto px-4 py-6">
+        <div class="animate-pulse">
+          <div class="h-8 bg-gray-800 rounded w-1/3 mb-6"></div>
+          <div class="flex flex-col md:flex-row gap-6 mb-8">
+            <div class="w-full md:w-1/4 bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+              <div class="flex flex-col items-center mb-6">
+                <div class="w-24 h-24 rounded-full bg-gray-700 mb-4"></div>
+                <div class="h-6 bg-gray-700 rounded w-1/2 mb-2"></div>
+                <div class="h-4 bg-gray-700 rounded w-1/3"></div>
+              </div>
+              <div class="space-y-3">
+                ${Array(5).fill().map(() => `<div class="h-10 bg-gray-700 rounded"></div>`).join('')}
+              </div>
+            </div>
+            <div class="w-full md:w-3/4 bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+              <div class="h-6 bg-gray-700 rounded w-1/4 mb-6"></div>
+              <div class="space-y-4">
+                ${Array(4).fill().map(() => `<div class="h-16 bg-gray-700 rounded"></div>`).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function generateAdminPanelSkeleton() {
+    return `
+      <div class="container mx-auto px-4 py-6">
+        <div class="animate-pulse">
+          <div class="h-8 bg-gray-800 rounded w-1/3 mb-6"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+              <div class="h-6 bg-gray-700 rounded w-1/4 mb-4"></div>
+              <div class="h-10 bg-gray-700 rounded w-full mb-4"></div>
+              <div class="h-10 bg-gray-700 rounded w-full"></div>
+            </div>
+            <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+              <div class="h-6 bg-gray-700 rounded w-1/4 mb-4"></div>
+              <div class="h-10 bg-gray-700 rounded w-full mb-4"></div>
+              <div class="h-10 bg-gray-700 rounded w-full"></div>
+            </div>
+          </div>
+          <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+            <div class="h-6 bg-gray-700 rounded w-1/4 mb-6"></div>
+            <div class="overflow-hidden rounded-lg border border-gray-700">
+              <div class="grid grid-cols-5 bg-gray-800/80 py-3 px-4">
+                ${Array(5).fill().map(() => `<div class="h-4 bg-gray-700 rounded w-1/3"></div>`).join('')}
+              </div>
+              ${Array(5).fill().map(() => `
+                <div class="grid grid-cols-5 py-3 px-4 border-t border-gray-700">
+                  ${Array(5).fill().map(() => `<div class="h-4 bg-gray-700 rounded w-1/3"></div>`).join('')}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
 }
 
 /**
