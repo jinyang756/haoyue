@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "皓月量化智能引擎 - A股股票分析系统",
   "type": "module",
-  "main": "index.html",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
