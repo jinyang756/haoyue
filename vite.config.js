@@ -26,8 +26,7 @@ export default defineConfig({
     // 配置rollup选项
     rollupOptions: {
       input: {
-        main: './index.html',
-        admin: './test-admin.html'
+        main: './index.html'
       },
       // 代码分割配置
       output: {
