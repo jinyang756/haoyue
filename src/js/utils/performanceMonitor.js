@@ -35,8 +35,8 @@ export const PerformanceMonitor = {
     samplingRate: 1.0, // 采样率 (0-1)
     logLevel: 'info', // 'debug', 'info', 'warn', 'error'
     maxEntries: 100, // 最大存储条目数
-    sendToServer: AppConfig.performance.sendMetrics || false,
-    serverUrl: AppConfig.performance.metricsEndpoint || '/api/performance-metrics'
+    sendToServer: false, // 默认不发送到服务器
+    serverUrl: '/api/performance-metrics' // 默认服务器端点
   },
   
   /**

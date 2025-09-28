@@ -96,13 +96,8 @@
     </div>
   </div>
 
-  <!-- 核心模块 - 按优先级加载 -->
-  <script type="module" src="src/js/modules/navigation.js" defer></script>
-  <script type="module" src="src/js/modules/authModule.js" defer></script>
-  <script type="module" src="src/js/modules/blackholeEntry.js" defer></script>
-  
-  <!-- 首页模块 - 优先加载 -->
-  <script type="module" src="src/js/modules/pages/homePage.js" defer></script>
+  <!-- 应用主入口 - 统一加载所有核心模块 -->
+  <script type="module" src="src/js/main.js"></script>
   
   <!-- 图表模块 - 按需加载的基础支持 -->
   <script type="module">
