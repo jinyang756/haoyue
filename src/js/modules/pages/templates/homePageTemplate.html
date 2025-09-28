@@ -1,0 +1,244 @@
+<!-- 市场概览 -->
+<section class="mb-8">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-white">市场概览</h2>
+    <div class="text-sm text-gray-400">
+      <span id="current-date">2025年7月21日</span>
+      <span id="current-time">15:00:00</span>
+    </div>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- 上证指数 -->
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-white">上证指数</h3>
+        <span class="text-danger font-bold">+1.25%</span>
+      </div>
+      <div class="mt-2 flex items-baseline">
+        <span class="text-2xl font-bold text-white">3,826.51</span>
+        <span class="ml-2 text-danger">+47.23</span>
+      </div>
+      <div class="mt-4 h-16">
+        <canvas id="sh-index-chart"></canvas>
+      </div>
+    </div>
+    
+    <!-- 深证成指 -->
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-white">深证成指</h3>
+        <span class="text-danger font-bold">+0.98%</span>
+      </div>
+      <div class="mt-2 flex items-baseline">
+        <span class="text-2xl font-bold text-white">12,584.76</span>
+        <span class="ml-2 text-danger">+123.85</span>
+      </div>
+      <div class="mt-4 h-16">
+        <canvas id="sz-index-chart"></canvas>
+      </div>
+    </div>
+    
+    <!-- 创业板指 -->
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-white">创业板指</h3>
+        <span class="text-danger font-bold">+1.52%</span>
+      </div>
+      <div class="mt-2 flex items-baseline">
+        <span class="text-2xl font-bold text-white">2,543.67</span>
+        <span class="ml-2 text-danger">+37.42</span>
+      </div>
+      <div class="mt-4 h-16">
+        <canvas id="gem-index-chart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 热门板块 -->
+<section class="mb-8">
+  <h2 class="text-xl font-bold text-white mb-4">热门板块</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="font-bold text-white">人工智能</h3>
+        <span class="text-danger">+3.25%</span>
+      </div>
+      <p class="text-sm text-gray-400">龙头股: 科大讯飞</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="font-bold text-white">新能源</h3>
+        <span class="text-danger">+2.87%</span>
+      </div>
+      <p class="text-sm text-gray-400">龙头股: 宁德时代</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="font-bold text-white">半导体</h3>
+        <span class="text-danger">+2.14%</span>
+      </div>
+      <p class="text-sm text-gray-400">龙头股: 中芯国际</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="font-bold text-white">医疗健康</h3>
+        <span class="text-danger">+1.96%</span>
+      </div>
+      <p class="text-sm text-gray-400">龙头股: 恒瑞医药</p>
+    </div>
+  </div>
+</section>
+
+<!-- 精选股票 -->
+<section class="mb-8">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-white">精选股票</h2>
+    <button id="view-all-stocks" class="text-primary text-sm">
+      查看全部 <i class="fa fa-angle-right ml-1"></i>
+    </button>
+  </div>
+  
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+      <thead>
+        <tr class="border-b border-gray-800">
+          <th class="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">股票代码</th>
+          <th class="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">股票名称</th>
+          <th class="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">最新价</th>
+          <th class="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">涨跌幅</th>
+          <th class="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">成交量(万)</th>
+          <th class="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">成交额(亿)</th>
+          <th class="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">市盈率(TTM)</th>
+          <th class="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">所属行业</th>
+          <th class="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800">
+        <tr class="hover:bg-gray-800 transition-colors duration-150">
+          <td class="py-3 px-4 text-sm text-white">600519</td>
+          <td class="py-3 px-4 text-sm text-white">贵州茅台</td>
+          <td class="py-3 px-4 text-sm text-white">1688.00</td>
+          <td class="py-3 px-4 text-sm text-danger">+2.15%</td>
+          <td class="py-3 px-4 text-sm text-gray-400">125.68</td>
+          <td class="py-3 px-4 text-sm text-gray-400">21.28</td>
+          <td class="py-3 px-4 text-sm text-gray-400">27.56</td>
+          <td class="py-3 px-4 text-sm text-gray-400">酿酒行业</td>
+          <td class="py-3 px-4 text-sm">
+            <button class="btn-primary text-xs py-1 px-3 view-stock-detail">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-800 transition-colors duration-150">
+          <td class="py-3 px-4 text-sm text-white">300750</td>
+          <td class="py-3 px-4 text-sm text-white">宁德时代</td>
+          <td class="py-3 px-4 text-sm text-white">425.68</td>
+          <td class="py-3 px-4 text-sm text-danger">+3.78%</td>
+          <td class="py-3 px-4 text-sm text-gray-400">896.32</td>
+          <td class="py-3 px-4 text-sm text-gray-400">38.15</td>
+          <td class="py-3 px-4 text-sm text-gray-400">38.42</td>
+          <td class="py-3 px-4 text-sm text-gray-400">新能源</td>
+          <td class="py-3 px-4 text-sm">
+            <button class="btn-primary text-xs py-1 px-3 view-stock-detail">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-800 transition-colors duration-150">
+          <td class="py-3 px-4 text-sm text-white">000858</td>
+          <td class="py-3 px-4 text-sm text-white">五粮液</td>
+          <td class="py-3 px-4 text-sm text-white">178.45</td>
+          <td class="py-3 px-4 text-sm text-danger">+1.82%</td>
+          <td class="py-3 px-4 text-sm text-gray-400">432.68</td>
+          <td class="py-3 px-4 text-sm text-gray-400">7.72</td>
+          <td class="py-3 px-4 text-sm text-gray-400">21.35</td>
+          <td class="py-3 px-4 text-sm text-gray-400">酿酒行业</td>
+          <td class="py-3 px-4 text-sm">
+            <button class="btn-primary text-xs py-1 px-3 view-stock-detail">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-800 transition-colors duration-150">
+          <td class="py-3 px-4 text-sm text-white">000333</td>
+          <td class="py-3 px-4 text-sm text-white">美的集团</td>
+          <td class="py-3 px-4 text-sm text-white">68.32</td>
+          <td class="py-3 px-4 text-sm text-danger">+0.96%</td>
+          <td class="py-3 px-4 text-sm text-gray-400">289.45</td>
+          <td class="py-3 px-4 text-sm text-gray-400">1.98</td>
+          <td class="py-3 px-4 text-sm text-gray-400">12.85</td>
+          <td class="py-3 px-4 text-sm text-gray-400">家用电器</td>
+          <td class="py-3 px-4 text-sm">
+            <button class="btn-primary text-xs py-1 px-3 view-stock-detail">详情</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 量化精选策略 -->
+<section class="mb-8">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-white">量化精选策略</h2>
+    <button id="view-all-strategies" class="text-primary text-sm">
+      查看全部 <i class="fa fa-angle-right ml-1"></i>
+    </button>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-white">价值投资策略</h3>
+        <span class="text-success">年化收益 +18.5%</span>
+      </div>
+      <p class="text-sm text-gray-400 mb-3">基于价值投资理念，选取低估值、高股息、业绩稳定增长的优质企业。</p>
+      <div class="flex justify-between items-center">
+        <span class="text-xs text-gray-500">风险等级: 中低</span>
+        <button class="btn-secondary text-sm py-1 px-3">查看详情</button>
+      </div>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-white">动量追踪策略</h3>
+        <span class="text-success">年化收益 +22.3%</span>
+      </div>
+      <p class="text-sm text-gray-400 mb-3">基于价格动量和交易量变化，捕捉市场热点和趋势性机会。</p>
+      <div class="flex justify-between items-center">
+        <span class="text-xs text-gray-500">风险等级: 中高</span>
+        <button class="btn-secondary text-sm py-1 px-3">查看详情</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 平台数据 -->
+<section>
+  <h2 class="text-xl font-bold text-white mb-4">平台数据</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <p class="text-sm text-gray-400 mb-1">注册用户</p>
+      <div class="flex items-end">
+        <span class="text-2xl font-bold text-white">158,427</span>
+        <span class="text-success text-xs ml-2 mb-1">+5.2%</span>
+      </div>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <p class="text-sm text-gray-400 mb-1">活跃策略</p>
+      <div class="flex items-end">
+        <span class="text-2xl font-bold text-white">3,256</span>
+        <span class="text-success text-xs ml-2 mb-1">+12.8%</span>
+      </div>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <p class="text-sm text-gray-400 mb-1">交易笔数</p>
+      <div class="flex items-end">
+        <span class="text-2xl font-bold text-white">89,732</span>
+        <span class="text-success text-xs ml-2 mb-1">+8.5%</span>
+      </div>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-card p-4 card-hover">
+      <p class="text-sm text-gray-400 mb-1">日均收益</p>
+      <div class="flex items-end">
+        <span class="text-2xl font-bold text-white">+1.25%</span>
+        <span class="text-success text-xs ml-2 mb-1">+0.35%</span>
+      </div>
+    </div>
+  </div>
+</section>

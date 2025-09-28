@@ -7,7 +7,10 @@ import { showSkeleton, hideSkeleton } from '../utils/skeletonScreens.js';
 import { CacheService } from '../utils/cacheService.js';
 
 // 导入动态导入工具
-import { importModule, preloadModulesByRoute } from '../utils/dynamicImport.js';
+import { importModule, preloadModules } from '../utils/dynamicImport.js';
+
+// 导入路由预加载服务
+import { routePreloadService } from '../services/routePreloadService.js';
 
 /**
  * 导航到指定页面 - 实现路由级别的懒加载
@@ -107,7 +110,14 @@ async function loadPageModule(pageId, params = {}) {
         // 使用requestAnimationFrame确保平滑初始化
         requestAnimationFrame(() => {
           try {
-            module[initMethod](params);
+            const initResult = module[initMethod](params);
+            // 处理异步初始化方法
+            if (initResult && typeof initResult.then === 'function') {
+              initResult.catch(initError => {
+                console.error(`初始化页面 ${pageId} 失败:`, initError);
+                showErrorNotification(`页面初始化失败: ${initError.message}`);
+              });
+            }
           } catch (initError) {
             console.error(`初始化页面 ${pageId} 失败:`, initError);
             showErrorNotification(`页面初始化失败: ${initError.message}`);
@@ -169,36 +179,42 @@ function getInitMethodForPage(pageId) {
  */
 function preloadRelatedModules(pageId) {
   try {
-    // 根据当前页面预加载可能会访问的模块
-    const relatedModules = [];
-    
-    switch (pageId) {
-      case 'home':
-        relatedModules.push('./pages/marketListPage.js');
-        relatedModules.push('./pages/quantStockPage.js');
-        break;
-      case 'market-list':
-        relatedModules.push('./pages/quantStockPage.js');
-        relatedModules.push('./pages/personalCenterPage.js');
-        break;
-      case 'quant-stock':
-        relatedModules.push('./pages/marketListPage.js');
-        break;
-      case 'personal-center':
-        relatedModules.push('./pages/homePage.js');
-        break;
-      case 'admin-panel':
-        relatedModules.push('./pages/marketListPage.js');
-        break;
-    }
-    
-    // 预加载模块
-    if (relatedModules.length > 0) {
-      preloadModulesByRoute(relatedModules);
-    }
+    // 使用新的路由预加载服务来预加载相关模块
+    routePreloadService.preloadByRoute(pageId);
+    console.log(`路由预加载服务已为页面 ${pageId} 启动预加载`);
   } catch (error) {
     console.error('预加载相关模块失败:', error);
-    // 预加载失败不影响主功能
+    // 降级处理：使用基础的预加载功能
+    try {
+      const relatedModules = [];
+      
+      switch (pageId) {
+        case 'home':
+          relatedModules.push('./pages/marketListPage.js');
+          relatedModules.push('./pages/quantStockPage.js');
+          break;
+        case 'market-list':
+          relatedModules.push('./pages/quantStockPage.js');
+          relatedModules.push('./pages/personalCenterPage.js');
+          break;
+        case 'quant-stock':
+          relatedModules.push('./pages/marketListPage.js');
+          break;
+        case 'personal-center':
+          relatedModules.push('./pages/homePage.js');
+          break;
+        case 'admin-panel':
+          relatedModules.push('./pages/marketListPage.js');
+          break;
+      }
+      
+      // 预加载模块
+      if (relatedModules.length > 0) {
+        preloadModules(relatedModules);
+      }
+    } catch (fallbackError) {
+      console.error('降级预加载也失败:', fallbackError);
+    }
   }
 }
 

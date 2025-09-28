@@ -13,11 +13,18 @@ import { sanitizeInput } from './utils/security.js';
 import { CacheService, fetchWithCache } from './utils/cacheService.js';
 import { initLazyLoad, addLazyLoad } from './utils/lazyLoad.js';
 import { SkeletonManager } from './modules/skeletonScreens.js';
-import { importModule, preloadModulesByRoute } from './utils/dynamicImport.js';
+import { importModule, preloadModules } from './utils/dynamicImport.js';
 import { setupLazyLoading as setupImageLazyLoading, preloadImages, isWebPSupported } from './utils/imageOptimizer';
 import { AdvancedCacheManager, CachePriority } from './utils/advancedCache';
 import { PerformanceMonitor } from './utils/performanceMonitor.js';
 import { initPerformancePanel } from './modules/performancePanel.js';
+import { routePreloadService } from './services/routePreloadService.js';
+import imageAdvancedService, { 
+  loadImageWithRetry, 
+  preloadImagesWithStrategy, 
+  setupSmartImagePreloading, 
+  setupProgressiveImageLoading 
+} from './services/imageAdvancedService.js';
 
 // 全局导航函数（供其他模块使用）
 window.navigateTo = navigateTo;
@@ -87,7 +94,17 @@ function initPerformanceOptimizations() {
   
   // 5. 暴露动态导入工具到全局
   window.importModule = importModule;
-  window.preloadModulesByRoute = preloadModulesByRoute;
+  window.preloadModules = preloadModules;
+  window.routePreloadService = routePreloadService;
+  
+  // 6. 初始化路由预加载服务
+  try {
+    // 设置链接悬停预加载
+    routePreloadService.setupLinkHoverPreload();
+    console.log('路由预加载服务初始化成功');
+  } catch (error) {
+    console.error('路由预加载服务初始化失败:', error);
+  }
   
   // 6. 初始化图片优化功能
   initImageOptimizations();
@@ -212,29 +229,47 @@ function initPerformanceMonitoring() {
 }
 
 /**
- * 初始化图片优化功能
+ * 初始化图片高级优化功能
  */
 function initImageOptimizations() {
   try {
-    console.log('WebP支持状态:', isWebPSupported() ? '支持' : '不支持');
+    console.log('初始化图片高级优化服务...');
     
-    // 为主要内容区域设置图片懒加载
+    // 为主要内容区域设置智能图片预加载
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
-      const imageObserver = setupImageLazyLoading(mainContent, {
+      // 设置智能预加载
+      const smartPreloadObserver = imageAdvancedService.setupSmartPreloading(mainContent, {
         selector: 'img[data-src]',
-        threshold: 200, // 在图片进入视口前200像素就开始加载
-        quality: 'medium' // 默认中等质量
+        threshold: 300, // 在图片进入视口前300像素就开始智能预加载
+        quality: 'medium'
       });
-      console.log('图片懒加载功能初始化成功');
+      console.log('智能图片预加载功能初始化成功');
+      
+      // 设置渐进式加载
+      imageAdvancedService.setupProgressiveLoadingForContainer(mainContent, {
+        selector: 'img[data-progressive]',
+        placeholderQuality: 'low',
+        targetQuality: 'high',
+        transitionTime: 500
+      });
+      console.log('渐进式图片加载功能初始化成功');
     }
     
     // 预加载一些关键的、全局使用的图片
     preloadCommonImages();
     
+    // 更新图片格式支持状态日志
+    const stats = imageAdvancedService.getImageStats();
+    console.log('图片格式支持状态:', stats.formatSupport);
+    
     // 全局暴露图片优化工具
+    window.imageAdvancedService = imageAdvancedService;
     window.setupImageLazyLoading = setupImageLazyLoading;
     window.preloadImages = preloadImages;
+    window.loadImageWithRetry = loadImageWithRetry;
+    window.setupSmartImagePreloading = setupSmartImagePreloading;
+    window.setupProgressiveImageLoading = setupProgressiveImageLoading;
     
   } catch (error) {
     console.error('图片优化功能初始化失败:', error);
@@ -254,9 +289,9 @@ function preloadCommonImages() {
     ];
     
     if (commonImages.length > 0) {
-      preloadImages(commonImages, {
-        width: 300,
-        quality: 'low',
+      preloadImagesWithStrategy(commonImages, {
+        quality: 'medium',
+        priority: 'high',
         onProgress: (progress) => {
           console.log(`预加载常用图片 ${progress.index + 1}/${progress.total} - ${progress.success ? '成功' : '失败'}`);
         }

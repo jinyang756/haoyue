@@ -2,12 +2,16 @@
  * 首页模块 - 实现市场概览、热门板块等功能
  */
 import { initMarketIndexCharts } from '../chartModule.js';
+import { navigateTo } from '../navigation.js';
 
 /**
  * 初始化首页功能
  */
-export function initHomePage() {
+export async function initHomePage() {
   console.log('首页模块已加载');
+  
+  // 动态加载HTML模板
+  await loadHomePageTemplate();
   
   // 初始化市场指数图表
   initMarketCharts();
@@ -17,6 +21,59 @@ export function initHomePage() {
   
   // 添加页面加载动画效果
   initPageAnimation();
+  
+  // 绑定事件
+  bindEvents();
+}
+
+/**
+ * 动态加载首页HTML模板
+ */
+async function loadHomePageTemplate() {
+  try {
+    // 获取模板内容
+    const response = await fetch('src/js/modules/pages/templates/homePageTemplate.html');
+    const templateHtml = await response.text();
+    
+    // 清空并填充首页内容
+    const homePageElement = document.getElementById('home-page');
+    if (homePageElement) {
+      homePageElement.innerHTML = templateHtml;
+    }
+  } catch (error) {
+    console.error('加载首页模板失败:', error);
+  }
+}
+
+/**
+ * 绑定页面事件
+ */
+function bindEvents() {
+  // 绑定查看全部股票事件
+  const viewAllStocksBtn = document.getElementById('view-all-stocks');
+  if (viewAllStocksBtn) {
+    viewAllStocksBtn.addEventListener('click', () => {
+      navigateTo('market-list');
+    });
+  }
+  
+  // 绑定查看全部策略事件
+  const viewAllStrategiesBtn = document.getElementById('view-all-strategies');
+  if (viewAllStrategiesBtn) {
+    viewAllStrategiesBtn.addEventListener('click', () => {
+      navigateTo('quant-stock');
+    });
+  }
+  
+  // 绑定股票详情按钮事件
+  const detailButtons = document.querySelectorAll('.view-stock-detail');
+  detailButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const row = this.closest('tr');
+      const stockCode = row.querySelector('td:first-child').textContent;
+      navigateTo('stock-detail', { stockCode });
+    });
+  });
 }
 
 /**

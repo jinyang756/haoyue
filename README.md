@@ -2,6 +2,24 @@
 
 ## 最近更新
 
+### 2025年9月29日
+- **前端技术栈更新**: 将Tailwind CSS从CDN方式迁移到本地PostCSS插件方式
+  - 安装了@tailwindcss/postcss和相关依赖包
+  - 创建了tailwind.config.js配置文件
+  - 更新了postcss.config.js配置文件
+  - 将内联的Tailwind配置和自定义工具类移动到单独的文件
+
+- **构建配置优化**: 解决了Vite与PostCSS的兼容性问题
+  - 在package.json中添加了"type": "module"
+  - 修复了PostCSS插件配置的语法错误
+  - 验证了构建流程，确保能成功生成dist目录
+
+- **Vercel部署配置优化**: 优化了项目的Vercel部署兼容性
+  - 将vercel.json中的构建器从@vercel/static更新为@vercel/static-build
+  - 添加了静态资源和favicon.ico的特定路由规则
+  - 配置了URL优化选项（cleanUrls和trailingSlash）
+  - 修复了JSON语法错误，确保文件能被正确解析
+
 ### 2025年9月28日
 - 修复了Vercel部署配置冲突问题
 - 重构了`vercel.json`文件，移除了冲突的配置属性

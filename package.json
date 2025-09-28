@@ -2,6 +2,7 @@
   "name": "haoyue-ai-engine",
   "version": "1.0.0",
   "description": "皓月量化智能引擎 - A股股票分析系统",
+  "type": "module",
   "main": "index.html",
   "scripts": {
     "dev": "vite",
@@ -22,6 +23,10 @@
     "font-awesome": "^4.7.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.13",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.13",
     "terser": "^5.44.0",
     "vite": "^5.0.0"
   }

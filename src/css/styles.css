@@ -3,6 +3,11 @@
  * 包含所有自定义样式和动画效果
  */
 
+/* Tailwind CSS 导入 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* 全局样式重置 */
 * {
   margin: 0;
@@ -151,7 +156,7 @@
 /* 图片懒加载样式 */
 img.lazyload {
   opacity: 0;
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
   transform: scale(0.95);
 }
 
@@ -165,6 +170,114 @@ img.lazyerror {
   transform: scale(1);
   /* 加载错误时的样式，显示一个错误图标或背景色 */
   background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* 渐进式图片加载样式 */
+img.progressive-image {
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+img.progressive-image.loaded {
+  opacity: 1;
+}
+
+/* 低质量预览图样式 */
+img.low-quality-preview {
+  filter: blur(8px);
+  transition: filter 0.5s ease-in-out;
+}
+
+img.low-quality-preview.high-quality-loaded {
+  filter: blur(0);
+}
+
+/* 优先级图片样式 */
+.priority-high {
+  transition-delay: 0ms;
+}
+
+.priority-medium {
+  transition-delay: 150ms;
+}
+
+.priority-low {
+  transition-delay: 300ms;
+}
+
+/* 响应式图片容器 */
+.responsive-image-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.responsive-image-container img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* 图片加载骨架屏 */
+.image-skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 图片加载动画 */
+.image-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: #3B82F6;
+  animation: spin 1s ease-in-out infinite;
+}
+
+/* 图片错误状态 */
+.image-error {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.image-error::before {
+  content: "\f03e"; /* Font Awesome camera icon */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-size: 24px;
+  color: rgba(239, 68, 68, 0.5);
+}
+
+/* 图片悬停效果 */
+.image-hover {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.image-hover:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
 }
 
 /* 懒加载占位图样式 */
@@ -442,7 +555,49 @@ img.lazyerror {
   overflow: hidden;
 }
 
-/* 自定义工具类 - 从index.html移动过来并转换为标准CSS */
+/* Tailwind 自定义工具类 */
+@layer utilities {
+  /* 性能优化 */
+  .content-auto {
+    content-visibility: auto;
+  }
+
+  /* 毛玻璃效果 */
+  .glass-effect {
+    background: rgba(31, 41, 55, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* 响应式表格 */
+  .table-responsive {
+    overflow-x: auto;
+  }
+  
+  .table-responsive table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table-responsive th,
+  .table-responsive td {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .table-responsive-mobile {
+    overflow-x: auto;
+  }
+  
+  .table-responsive-mobile table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table-responsive-mobile td {
+    padding: 0.5rem 0.75rem;
+  }
+}
 
 /* 卡片悬停效果 */
 .card-hover {
