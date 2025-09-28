@@ -2,6 +2,8 @@
  * 缓存服务 - 提供本地存储缓存和IndexedDB存储功能
  */
 
+import { AppConfig, log } from './config.js';
+
 /**
  * 缓存服务类
  * 提供本地存储缓存、IndexedDB存储和数据过期策略
@@ -11,9 +13,9 @@ export const CacheService = {
    * 设置本地存储缓存
    * @param {string} key - 缓存键名
    * @param {any} data - 缓存数据
-   * @param {number} expirationMinutes - 过期时间（分钟），默认60分钟
+   * @param {number} expirationMinutes - 过期时间（分钟），默认从配置读取
    */
-  setCache(key, data, expirationMinutes = 60) {
+  setCache(key, data, expirationMinutes = AppConfig.cache.expiry / 1000 / 60) {
     try {
       const item = {
         data,
@@ -21,7 +23,7 @@ export const CacheService = {
       };
       localStorage.setItem(key, JSON.stringify(item));
     } catch (error) {
-      console.error('设置缓存失败:', error);
+      log(`设置缓存失败: ${error}`, 'error');
     }
   },
   
@@ -44,7 +46,7 @@ export const CacheService = {
       
       return parsedItem.data;
     } catch (error) {
-      console.error('获取缓存失败:', error);
+      log(`获取缓存失败: ${error}`, 'error');
       return null;
     }
   },
@@ -57,7 +59,7 @@ export const CacheService = {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.error('清除缓存失败:', error);
+      log(`清除缓存失败: ${error}`, 'error');
     }
   },
   
@@ -68,7 +70,7 @@ export const CacheService = {
     try {
       localStorage.clear();
     } catch (error) {
-      console.error('清除所有缓存失败:', error);
+      log(`清除所有缓存失败: ${error}`, 'error');
     }
   },
   
@@ -84,7 +86,7 @@ export const CacheService = {
       const request = indexedDB.open(dbName, version);
       
       request.onerror = (event) => {
-        console.error('IndexedDB初始化失败:', event.target.error);
+        log(`IndexedDB初始化失败: ${event.target.error}`, 'error');
         reject(event.target.error);
       };
       
@@ -138,7 +140,7 @@ export const CacheService = {
       const request = store.put(dataWithTimestamp);
       
       request.onerror = (event) => {
-        console.error('IndexedDB存储失败:', event.target.error);
+        log(`IndexedDB存储失败: ${event.target.error}`, 'error');
         reject(event.target.error);
       };
       
@@ -164,7 +166,7 @@ export const CacheService = {
       const request = store.get(key);
       
       request.onerror = (event) => {
-        console.error('IndexedDB获取失败:', event.target.error);
+        log(`IndexedDB获取失败: ${event.target.error}`, 'error');
         reject(event.target.error);
       };
       
@@ -207,7 +209,7 @@ export const CacheService = {
       const request = store.delete(key);
       
       request.onerror = (event) => {
-        console.error('IndexedDB删除失败:', event.target.error);
+        log(`IndexedDB删除失败: ${event.target.error}`, 'error');
         reject(event.target.error);
       };
       
@@ -242,7 +244,7 @@ export const CacheService = {
         }
       }
     } catch (error) {
-      console.error('清理过期缓存失败:', error);
+      log(`清理过期缓存失败: ${error}`, 'error');
     }
   }
 };
@@ -256,41 +258,62 @@ export const CacheService = {
  * @returns {Promise<any>} - 返回请求结果的Promise
  */
 export async function fetchWithCache(url, options = {}, cacheKey = null, cacheMinutes = 10) {
+  // 合并默认选项和用户提供的选项
+  const fetchOptions = {
+    ...options,
+    timeout: AppConfig.api.timeout // 使用配置中的超时时间
+  };
   // 如果没有提供缓存键，则使用URL作为键
   const key = cacheKey || `fetch_${url.replace(/\//g, '_')}`;
   
   // 尝试从缓存获取数据
   const cachedData = CacheService.getCache(key);
   if (cachedData) {
-    console.log(`从缓存获取数据: ${key}`);
+    log(`从缓存获取数据: ${key}`);
     return cachedData;
   }
   
   // 缓存未命中，发送请求
   try {
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      throw new Error(`HTTP错误! 状态码: ${response.status}`);
-    }
+    // 添加超时处理
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), AppConfig.api.timeout);
+    
+    try {
+      const response = await fetch(url, { ...fetchOptions, signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP错误! 状态码: ${response.status}`);
+      }
     
     const data = await response.json();
     
     // 缓存数据
-    CacheService.setCache(key, data, cacheMinutes);
-    
-    return data;
+      CacheService.setCache(key, data, cacheMinutes);
+      
+      return data;
+    } catch (error) {
+      clearTimeout(timeoutId); // 确保清除超时计时器
+      log(`请求失败: ${url}, 错误: ${error}`, 'error');
+      throw error;
+    }
   } catch (error) {
-    console.error(`请求失败: ${url}`, error);
+    log(`fetchWithCache 执行失败: ${error}`, 'error');
     throw error;
   }
 }
 
-// 定期清理过期缓存（每小时）
-setInterval(CacheService.cleanupExpiredCache, 60 * 60 * 1000);
+// 定期清理过期缓存（从配置中读取时间间隔）
+const cleanupInterval = 60 * 60 * 1000; // 默认1小时
+setInterval(CacheService.cleanupExpiredCache, cleanupInterval);
 
 // 立即清理一次过期缓存
 try {
   CacheService.cleanupExpiredCache();
 } catch (error) {
-  console.error('初始化缓存清理失败:', error);
+  log(`初始化缓存清理失败: ${error}`, 'error');
 }
+
+// 导出默认对象
+export default CacheService;
