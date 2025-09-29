@@ -1,7 +1,10 @@
 // 页面导航功能模块
 
 // 导入骨架屏功能
-import { showSkeleton, hideSkeleton } from '../utils/skeletonScreens.js';
+import { SkeletonManager } from './skeletonScreens.js';
+
+// 创建骨架屏管理器实例
+const skeletonManager = new SkeletonManager();
 
 // 导入缓存服务
 import { CacheService } from '../utils/cacheService.js';
@@ -34,7 +37,7 @@ export function navigateTo(pageId, params = {}) {
   }
   
   // 显示骨架屏
-  showSkeleton(pageId);
+  skeletonManager.showSkeleton(pageId);
   
   // 设置加载状态
   document.body.classList.add('page-transitioning');
@@ -130,7 +133,7 @@ async function loadPageModule(pageId, params = {}) {
     console.log(`页面模块加载完成: ${pageId}`);
     
     // 延迟隐藏骨架屏，确保用户看到加载状态
-    setTimeout(() => hideSkeleton(pageId), 500);
+    setTimeout(() => skeletonManager.hideSkeleton(pageId), 500);
     document.body.classList.remove('page-transitioning');
     
     // 预加载相关模块
@@ -146,7 +149,7 @@ async function loadPageModule(pageId, params = {}) {
     console.error(`Error loading module for ${pageId}:`, error);
     // 显示错误提示
     showErrorNotification(`加载页面失败: ${error.message}`);
-    hideSkeleton(pageId);
+    skeletonManager.hideSkeleton(pageId);
     document.body.classList.remove('page-transitioning');
     
     // 降级显示错误页面

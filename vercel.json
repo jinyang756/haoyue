@@ -8,7 +8,7 @@
       "config": {
         "distDir": "dist",
         "buildCommand": "npm run build",
-        "installCommand": "npm install",
+        "installCommand": "npm ci",
         "staticFiles": {
           "staticOutputPath": "dist"
         }
@@ -21,18 +21,45 @@
       "destination": "/index.html"
     }
   ],
+  "redirects": [
+    {
+      "source": "/old-path",
+      "destination": "/new-path",
+      "permanent": true
+    }
+  ],
   "cleanUrls": true,
   "trailingSlash": false,
   "public": true,
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "(.*\\.js|.*\\.css|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.webp)",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "max-age=31536000, immutable"
         }
       ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }

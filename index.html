@@ -12,28 +12,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
 
 </head>
-<body class="bg-black text-white font-sans overflow-hidden">
-  <!-- 黑洞入口界面 -->
-  <div id="blackhole-entry" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
-    <div class="relative w-full h-full">
-      <!-- 黑洞背景图 -->
-      <div id="blackhole-bg" class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/540c39d8e0004320b63f0424601e6961~tplv-a9rns2rl98-image.image?rcl=20250927023438BB17BEA452671580AD97&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1761503703&x-signature=6uCkDQHZ5wqsApVaQMwbRhGxo3o%3D')"></div>
-      
-      <!-- 粒子特效层 -->
-      <div id="particles-container" class="absolute inset-0 pointer-events-none opacity-100 transition-opacity duration-1000"></div>
-      
-      <!-- 进度条 -->
-      <div id="loading-progress" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
-        <div id="progress-bar" class="h-full bg-blue-500 w-0 transition-all duration-300"></div>
-      </div>
-      
-      <!-- 加载文本 -->
-      <div id="loading-text" class="absolute bottom-16 left-1/2 transform -translate-x-1/2 text-gray-400 text-sm">
-        正在加载系统资源... <span id="progress-percent">0%</span>
-      </div>
-    </div>
-  </div>
-
+<body class="bg-black text-white font-sans">
+  <!-- 移除黑洞入口界面 -->
   <!-- 鼠标跟随容器 -->
   <div id="mouse-follow-container" class="fixed inset-0 pointer-events-none z-10"></div>
 

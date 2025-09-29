@@ -11,15 +11,21 @@ lerna-debug.log*
 node_modules
 .pnp
 .pnp.js
+.yarn-integrity
 
 # Build output
 dist
 dist-ssr
+build
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/*.code-snippets
 .idea
 .DS_Store
 *.suo
@@ -27,6 +33,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+Thumbs.db
 
 # Environment variables
 .env
@@ -34,14 +41,24 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
 
 # Testing
 coverage
 *.lcov
+.nyc_output/
 
 # Temporary files
 *.tmp
 *.temp
 .cache
+.parcel-cache
+.next
+.nuxt
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
 .vercel
-.env*.local
+
+# Other\*.tgz

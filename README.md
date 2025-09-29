@@ -2,6 +2,20 @@
 
 ## 最近更新
 
+### 2025年10月1日
+- **集成Statsig功能标志管理系统**：
+  - 添加了环境变量配置（VITE_STATSIG_CLIENT_KEY、VITE_STATSIG_SERVER_API_KEY、VITE_EXPERIMENTATION_CONFIG_ITEM_KEY）
+  - 实现了用户身份识别功能（identify函数）
+  - 实现了功能标志管理功能（createFeatureFlag函数）
+  - 集成到首页，在右上角显示功能标志状态
+- **修复了主页无法加载的问题**：
+  - 原因：应用初始化完成后没有调用导航到首页的函数
+  - 解决方案：在main.js的initApp函数末尾添加navigateTo('home')调用（延迟1秒执行以确保其他初始化完成）
+- **首页加载特效移除**：
+  - 修改内容：移除黑洞入口界面的HTML结构和相关JavaScript代码
+  - 调整样式：移除body上的overflow-hidden样式，让页面可以正常滚动
+  - 效果：应用现在直接显示首页内容，不再显示加载动画和黑洞特效
+
 ### 2025年9月29日
 - **前端技术栈更新**: 将Tailwind CSS从CDN方式迁移到本地PostCSS插件方式
   - 安装了@tailwindcss/postcss和相关依赖包

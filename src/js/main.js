@@ -2,7 +2,8 @@
 
 // 导入模块
 import { initAuthUI, checkLoginStatus, checkAdminStatus } from './modules/authModule.js';
-import { initBlackholeEntry } from './modules/blackholeEntry.js';
+// 注释掉黑洞入口导入
+// import { initBlackholeEntry } from './modules/blackholeEntry.js';
 import { initMarketIndexCharts, initBacktestChart } from './modules/chartModule.js';
 import { initContentGeneration, initBacktest, initDonation } from './modules/contentGeneration.js';
 import { initNavigation, navigateTo } from './modules/navigation.js';
@@ -37,8 +38,8 @@ function initApp() {
   // 2. 初始化认证系统
   const auth = initAuthUI();
   
-  // 3. 初始化黑洞入口和粒子效果
-  initBlackholeEntry();
+  // 3. 移除黑洞入口初始化
+  // initBlackholeEntry();
   
   // 4. 初始化导航系统
   initNavigation();
@@ -58,7 +59,12 @@ function initApp() {
   initSearchFunction();
   
   // 9. 确保页面正确显示
-  document.body.style.overflow = 'hidden'; // 初始隐藏滚动条
+  document.body.style.overflow = 'auto'; // 允许页面滚动
+  
+  // 10. 导航到首页
+  setTimeout(() => {
+    navigateTo('home');
+  }, 1000);
 }
 
 /**
@@ -85,8 +91,7 @@ function initPerformanceOptimizations() {
     console.log('骨架屏管理器初始化成功');
   } catch (error) {
     console.error('骨架屏管理器初始化失败:', error);
-    // 降级处理：仍使用原有的骨架屏初始化
-    initSkeletonScreens();
+    // 降级处理：不进行骨架屏初始化
   }
   
   // 4. 注册Service Worker，提供离线访问和高级缓存功能
