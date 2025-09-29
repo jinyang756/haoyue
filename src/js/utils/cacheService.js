@@ -255,14 +255,28 @@ export const CacheService = {
  * @param {Object} options - fetch选项
  * @param {string} cacheKey - 缓存键名
  * @param {number} cacheMinutes - 缓存时间（分钟）
+ * @param {string} apiType - 可选，API类型，使用DATA_SOURCE_API中的常量
  * @returns {Promise<any>} - 返回请求结果的Promise
  */
-export async function fetchWithCache(url, options = {}, cacheKey = null, cacheMinutes = 10) {
+export async function fetchWithCache(url, options = {}, cacheKey = null, cacheMinutes = 10, apiType = null) {
   // 合并默认选项和用户提供的选项
-  const fetchOptions = {
+  let fetchOptions = {
     ...options,
     timeout: AppConfig.api.timeout // 使用配置中的超时时间
   };
+  
+  // 如果指定了API类型，添加授权头
+  if (apiType) {
+    try {
+      // 延迟导入以避免循环依赖
+      const { apiKeyManager } = await import('./apiKeyManager.js');
+      fetchOptions = await apiKeyManager.addAuthHeader(apiType, fetchOptions);
+    } catch (error) {
+      log(`添加API授权头失败: ${error}`, 'warn');
+      // 继续执行，让调用方决定如何处理授权失败
+    }
+  }
+  
   // 如果没有提供缓存键，则使用URL作为键
   const key = cacheKey || `fetch_${url.replace(/\//g, '_')}`;
   

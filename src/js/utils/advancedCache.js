@@ -150,7 +150,8 @@ export const AdvancedCacheManager = {
       priority = CachePriority.MEDIUM,
       cacheKey = null,
       cacheMinutes = 10,
-      staleWhileRevalidate = false
+      staleWhileRevalidate = false,
+      apiType = null
     } = cacheOptions;
     
     // 生成缓存键
@@ -164,7 +165,7 @@ export const AdvancedCacheManager = {
       // 后台刷新缓存
       setTimeout(async () => {
         try {
-          const freshData = await fetchWithCache(url, options, null, cacheMinutes);
+          const freshData = await fetchWithCache(url, options, null, cacheMinutes, apiType);
           this.setPriorityCache(key, freshData, {
             priority,
             expirationMinutes: cacheMinutes,
@@ -180,7 +181,7 @@ export const AdvancedCacheManager = {
     
     // 缓存未命中或未启用stale-while-revalidate，正常获取数据
     try {
-      const data = await fetchWithCache(url, options, null, cacheMinutes);
+      const data = await fetchWithCache(url, options, null, cacheMinutes, apiType);
       
       // 存储到优先级缓存
       this.setPriorityCache(key, data, {
