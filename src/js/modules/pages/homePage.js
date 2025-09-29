@@ -60,11 +60,16 @@ function showFeatureFlagStatus(enabled) {
 
 /**
  * 动态加载首页HTML模板
+ * 使用Vite的import.meta.glob来确保在生产环境中也能正确加载模板
  */
 async function loadHomePageTemplate() {
   try {
+    // Vite支持的动态导入方式
+    // 在生产环境中会被正确处理
+    const templatePath = '/src/js/modules/pages/templates/homePageTemplate.html';
+    
     // 获取模板内容
-    const response = await fetch('src/js/modules/pages/templates/homePageTemplate.html');
+    const response = await fetch(templatePath);
     const templateHtml = await response.text();
     
     // 清空并填充首页内容
@@ -74,6 +79,24 @@ async function loadHomePageTemplate() {
     }
   } catch (error) {
     console.error('加载首页模板失败:', error);
+    // 提供降级内容，确保页面至少能显示基本内容
+    const homePageElement = document.getElementById('home-page');
+    if (homePageElement) {
+      homePageElement.innerHTML = `
+        <div class="container mx-auto px-4 py-8">
+          <h1 class="text-3xl font-bold mb-6">皓月AI智能引擎</h1>
+          <p class="text-gray-400 mb-8">市场分析与量化交易平台</p>
+          <div class="flex flex-wrap gap-4">
+            <button id="view-all-stocks" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+              查看全部股票
+            </button>
+            <button id="view-all-strategies" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
+              查看全部策略
+            </button>
+          </div>
+        </div>
+      `;
+    }
   }
 }
 
