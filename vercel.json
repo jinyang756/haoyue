@@ -2,16 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "framework": "vite",
-  "ignore": [
-    "README.md",
-    "皓月AI智能引擎 - 项目综合指南.md",
-    ".vscode",
-    ".gitignore",
-    ".npmrc",
-    "postcss.config.js",
-    "tailwind.config.js",
-    "vite.config.js"
-  ],
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
