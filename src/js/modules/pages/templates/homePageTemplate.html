@@ -1,0 +1,147 @@
+<!-- 首页HTML模板 -->
+<div class="space-y-8">
+  <!-- 市场概览 -->
+  <section class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-white">市场概览</h2>
+      <div class="flex items-center space-x-2">
+        <span class="text-sm text-gray-400">实时</span>
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+      </div>
+    </div>
+    
+    <!-- 主要市场指数 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-gray-800 rounded-lg p-4">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-gray-400">上证指数</span>
+          <span class="text-green-500 text-sm">+1.23%</span>
+        </div>
+        <div class="text-2xl font-bold text-white">3,284.56</div>
+      </div>
+      
+      <div class="bg-gray-800 rounded-lg p-4">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-gray-400">深证成指</span>
+          <span class="text-green-500 text-sm">+0.85%</span>
+        </div>
+        <div class="text-2xl font-bold text-white">11,035.78</div>
+      </div>
+      
+      <div class="bg-gray-800 rounded-lg p-4">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-gray-400">创业板指</span>
+          <span class="text-red-500 text-sm">-0.42%</span>
+        </div>
+        <div class="text-2xl font-bold text-white">2,256.34</div>
+      </div>
+    </div>
+    
+    <!-- 市场指数图表 -->
+    <div class="h-64 bg-gray-800 rounded-lg p-4">
+      <canvas id="market-index-chart"></canvas>
+    </div>
+  </section>
+  
+  <!-- 热门股票 -->
+  <section class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-white">热门股票</h2>
+      <button id="view-all-stocks" class="text-primary text-sm hover:underline">查看全部</button>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-800">
+            <th class="text-left py-3 px-4 text-sm font-medium text-gray-400">股票名称</th>
+            <th class="text-right py-3 px-4 text-sm font-medium text-gray-400">最新价</th>
+            <th class="text-right py-3 px-4 text-sm font-medium text-gray-400">涨跌幅</th>
+            <th class="text-right py-3 px-4 text-sm font-medium text-gray-400">成交量(万)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+            <td class="py-3 px-4">
+              <div class="flex items-center space-x-2">
+                <span class="text-white">贵州茅台</span>
+                <span class="text-gray-400 text-xs">600519</span>
+              </div>
+            </td>
+            <td class="text-right py-3 px-4 text-white">1,623.00</td>
+            <td class="text-right py-3 px-4 text-green-500">+2.35%</td>
+            <td class="text-right py-3 px-4 text-gray-400">2,546</td>
+          </tr>
+          <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+            <td class="py-3 px-4">
+              <div class="flex items-center space-x-2">
+                <span class="text-white">宁德时代</span>
+                <span class="text-gray-400 text-xs">300750</span>
+              </div>
+            </td>
+            <td class="text-right py-3 px-4 text-white">189.50</td>
+            <td class="text-right py-3 px-4 text-red-500">-1.20%</td>
+            <td class="text-right py-3 px-4 text-gray-400">8,765</td>
+          </tr>
+          <tr class="hover:bg-gray-800 transition-colors">
+            <td class="py-3 px-4">
+              <div class="flex items-center space-x-2">
+                <span class="text-white">比亚迪</span>
+                <span class="text-gray-400 text-xs">002594</span>
+              </div>
+            </td>
+            <td class="text-right py-3 px-4 text-white">245.80</td>
+            <td class="text-right py-3 px-4 text-green-500">+3.10%</td>
+            <td class="text-right py-3 px-4 text-gray-400">12,345</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  
+  <!-- 热门量化策略 -->
+  <section class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-white">热门量化策略</h2>
+      <button id="view-all-strategies" class="text-primary text-sm hover:underline">查看全部</button>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors">
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-medium text-white">动量策略</h3>
+          <span class="px-2 py-1 text-xs rounded bg-green-900 text-green-300">年化收益 +21.3%</span>
+        </div>
+        <p class="text-sm text-gray-400 mb-3">捕捉市场趋势，追涨杀跌的经典策略</p>
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-500">最大回撤: 8.7%</span>
+          <button class="text-primary text-sm">查看详情</button>
+        </div>
+      </div>
+      
+      <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors">
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-medium text-white">均值回归策略</h3>
+          <span class="px-2 py-1 text-xs rounded bg-green-900 text-green-300">年化收益 +18.5%</span>
+        </div>
+        <p class="text-sm text-gray-400 mb-3">基于价格围绕价值波动的统计套利策略</p>
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-500">最大回撤: 6.2%</span>
+          <button class="text-primary text-sm">查看详情</button>
+        </div>
+      </div>
+      
+      <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors">
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-medium text-white">多因子选股</h3>
+          <span class="px-2 py-1 text-xs rounded bg-green-900 text-green-300">年化收益 +24.7%</span>
+        </div>
+        <p class="text-sm text-gray-400 mb-3">综合价值、成长、动量等多种因子的选股策略</p>
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-500">最大回撤: 12.3%</span>
+          <button class="text-primary text-sm">查看详情</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
