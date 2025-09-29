@@ -323,7 +323,7 @@ function registerServiceWorker() {
       }
       
       // 在生产环境中注册Service Worker
-      navigator.serviceWorker.register('/serviceWorker.js')
+      navigator.serviceWorker.register('/src/js/serviceWorker.js')
         .then(registration => {
           console.log('Service Worker 注册成功:', registration.scope);
         })
