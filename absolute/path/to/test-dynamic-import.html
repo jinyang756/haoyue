@@ -1,0 +1,16 @@
+// 原代码
+// function loadSkeletonManager() {
+//   return new Promise((resolve, reject) => {
+//     const script = document.createElement('script');
+//     script.src = './src/js/modules/skeletonScreens.js';
+//     // ...
+//   });
+// }
+
+// 优化后代码
+import { SkeletonManager as SkeletonManagerClass } from './src/js/modules/skeletonScreens.js';
+let SkeletonManager = SkeletonManagerClass;
+
+function loadSkeletonManager() {
+  return Promise.resolve();
+}
