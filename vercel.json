@@ -1,6 +1,17 @@
 {
   "version": 2,
   "framework": "vite",
+  "ignore": [
+    "README.md",
+    "皓月AI智能引擎 - 项目综合指南.md",
+    "src/js/modules/pages/templates/*",
+    ".vscode",
+    ".gitignore",
+    ".npmrc",
+    "postcss.config.js",
+    "tailwind.config.js",
+    "vite.config.js"
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
