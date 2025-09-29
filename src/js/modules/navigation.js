@@ -90,21 +90,76 @@ export function navigateTo(pageId, params = {}) {
  * 动态加载页面模块
  * @param {string} pageId - 页面ID
  * @param {object} params - 导航参数
+ * @param {object} options - 加载选项
  */
-async function loadPageModule(pageId, params = {}) {
+async function loadPageModule(pageId, params = {}, options = {}) {
+  // 默认选项
+  const defaultOptions = {
+    retries: 3,               // 增加重试次数到3次
+    retryDelay: 1000,         // 增加重试间隔到1秒
+    maxRetryDelay: 3000,      // 最大重试间隔
+    exponentialBackoff: true, // 使用指数退避策略
+    loadingId: `${pageId}-page`
+  };
+  
+  const loadOptions = { ...defaultOptions, ...options };
+  let currentAttempt = 0;
+  let currentDelay = loadOptions.retryDelay;
+  
   try {
     console.log(`开始加载页面模块: ${pageId}`);
     
     // 根据页面ID加载对应的模块
-  // 注意：路径需要相对于当前文件的位置
-  const modulePath = `../modules/pages/${pageId}Page.js`;
-  const module = await importModule(modulePath, {
-      loadingId: `${pageId}-page`,
-      retries: 2,
-      retryDelay: 500,
-      onRetry: (attempt) => {
-        console.warn(`加载页面 ${pageId} 失败，正在进行第 ${attempt} 次重试...`);
+    // 注意：路径需要相对于当前文件的位置
+    const modulePath = `../modules/pages/${pageId}Page.js`;
+    
+    // 打印加载路径信息用于调试
+    console.log(`尝试加载模块路径: ${modulePath}`);
+    
+    // 创建重试回调函数
+    const onRetry = (attempt) => {
+      currentAttempt = attempt;
+      console.warn(`加载页面 ${pageId} 失败，正在进行第 ${attempt} 次重试...`);
+      
+      // 显示重试提示
+      const loadingContainer = document.getElementById(loadOptions.loadingId);
+      if (loadingContainer) {
+        const retryIndicator = loadingContainer.querySelector('.retry-indicator');
+        if (!retryIndicator) {
+          const indicator = document.createElement('div');
+          indicator.className = 'retry-indicator';
+          indicator.innerText = `正在重试 (${attempt}/${loadOptions.retries})`;
+          indicator.style.position = 'absolute';
+          indicator.style.top = '50%';
+          indicator.style.left = '50%';
+          indicator.style.transform = 'translate(-50%, -50%)';
+          indicator.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+          indicator.style.color = 'white';
+          indicator.style.padding = '8px 12px';
+          indicator.style.borderRadius = '4px';
+          indicator.style.zIndex = '1000';
+          loadingContainer.appendChild(indicator);
+        } else {
+          retryIndicator.innerText = `正在重试 (${attempt}/${loadOptions.retries})`;
+        }
       }
+      
+      // 应用指数退避策略
+      if (loadOptions.exponentialBackoff) {
+        currentDelay = Math.min(
+          currentDelay * 2, 
+          loadOptions.maxRetryDelay
+        );
+      }
+    };
+    
+    const module = await importModule(modulePath, {
+      showLoading: true,
+      loadingMessage: `加载${getPageName(pageId)}中...`,
+      pageId: pageId,
+      retries: loadOptions.retries,
+      retryDelay: currentDelay,
+      onRetry: onRetry
     });
     
     // 初始化页面
@@ -117,10 +172,14 @@ async function loadPageModule(pageId, params = {}) {
             const initResult = module[initMethod](params);
             // 处理异步初始化方法
             if (initResult && typeof initResult.then === 'function') {
-              initResult.catch(initError => {
-                console.error(`初始化页面 ${pageId} 失败:`, initError);
-                showErrorNotification(`页面初始化失败: ${initError.message}`);
-              });
+              initResult
+                .then(() => {
+                  console.log(`页面 ${pageId} 初始化完成`);
+                })
+                .catch(initError => {
+                  console.error(`初始化页面 ${pageId} 失败:`, initError);
+                  showErrorNotification(`页面初始化失败: ${initError.message}`);
+                });
             }
           } catch (initError) {
             console.error(`初始化页面 ${pageId} 失败:`, initError);
@@ -147,13 +206,79 @@ async function loadPageModule(pageId, params = {}) {
     
   } catch (error) {
     console.error(`Error loading module for ${pageId}:`, error);
-    // 显示错误提示
-    showErrorNotification(`加载页面失败: ${error.message}`);
+    
+    // 显示友好的错误提示
+    let errorMessage = '页面加载失败，请刷新页面后重试';
+    if (error.message.includes('Failed to fetch dynamically imported module')) {
+      errorMessage = '网络连接异常，无法加载页面资源';
+    }
+    
+    showErrorNotification(errorMessage);
+    
+    // 隐藏骨架屏和加载状态
     skeletonManager.hideSkeleton(pageId);
     document.body.classList.remove('page-transitioning');
     
     // 降级显示错误页面
     showErrorPage(pageId, error);
+    
+    // 添加重试按钮
+    addRetryButton(pageId, params);
+  }
+  
+  // 获取页面名称用于显示
+  function getPageName(pageId) {
+    const pageNames = {
+      'home': '首页',
+      'market-list': '市场列表',
+      'quant-stock': '量化选股',
+      'charity': '公益活动',
+      'admin-panel': '管理面板',
+      'personal-center': '个人中心',
+      'platform-intro': '平台介绍',
+      'api-doc': 'API文档',
+      'stock-detail': '股票详情'
+    };
+    return pageNames[pageId] || pageId;
+  }
+  
+  // 添加重试按钮
+  function addRetryButton(pageId, params) {
+    // 检查是否已存在重试按钮
+    let retryButton = document.querySelector('.retry-button');
+    if (retryButton) {
+      retryButton.remove();
+    }
+    
+    retryButton = document.createElement('button');
+    retryButton.className = 'retry-button';
+    retryButton.innerText = '重新加载页面';
+    retryButton.style.position = 'fixed';
+    retryButton.style.bottom = '20px';
+    retryButton.style.left = '50%';
+    retryButton.style.transform = 'translateX(-50%)';
+    retryButton.style.padding = '10px 20px';
+    retryButton.style.backgroundColor = '#007bff';
+    retryButton.style.color = 'white';
+    retryButton.style.border = 'none';
+    retryButton.style.borderRadius = '5px';
+    retryButton.style.cursor = 'pointer';
+    retryButton.style.zIndex = '10000';
+    retryButton.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+    retryButton.onclick = () => {
+      retryButton.remove();
+      // 重新导航到页面
+      navigateTo(pageId, params);
+    };
+    
+    document.body.appendChild(retryButton);
+    
+    // 10秒后自动移除重试按钮
+    setTimeout(() => {
+      if (retryButton.parentNode) {
+        retryButton.remove();
+      }
+    }, 10000);
   }
 }
 

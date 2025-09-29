@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>动态导入测试页面</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007bff',
+            secondary: '#6c757d',
+            success: '#28a745',
+            danger: '#dc3545',
+            warning: '#ffc107',
+            info: '#17a2b8',
+            light: '#f8f9fa',
+            dark: '#343a40'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .transition-all-300 {
+        transition: all 300ms ease-in-out;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-inter text-gray-800 min-h-screen">
+  <!-- 顶部导航栏 -->
+  <nav class="bg-white shadow-md py-4 px-6 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-primary">动态导入模块测试</h1>
+      <div class="flex space-x-4">
+        <button id="show-console-btn" class="bg-secondary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all-300">
+          <i class="fa fa-terminal mr-2"></i>显示控制台
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-8">
+    <!-- 测试控制面板 -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-xl font-bold mb-4">模块加载测试</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 左侧：测试选项 -->
+        <div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">选择要加载的页面模块:</label>
+            <select id="module-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+              <option value="home">首页 (home)</option>
+              <option value="market-list">市场列表 (market-list)</option>
+              <option value="quant-stock">量化选股 (quant-stock)</option>
+              <option value="charity">公益活动 (charity)</option>
+              <option value="admin-panel">管理面板 (admin-panel)</option>
+              <option value="personal-center">个人中心 (personal-center)</option>
+              <option value="platform-intro">平台介绍 (platform-intro)</option>
+              <option value="api-doc">API文档 (api-doc)</option>
+              <option value="stock-detail">股票详情 (stock-detail)</option>
+            </select>
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">重试次数:</label>
+            <input type="number" id="retry-count" min="0" max="10" value="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">重试延迟 (毫秒):</label>
+            <input type="number" id="retry-delay" min="100" max="5000" value="1000" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+          </div>
+          
+          <div class="flex space-x-4">
+            <button id="load-module-btn" class="bg-primary text-white px-6 py-3 rounded-md hover:bg-opacity-90 transition-all-300 flex-1 flex items-center justify-center">
+              <i class="fa fa-play-circle mr-2"></i>加载模块
+            </button>
+            <button id="clear-results-btn" class="bg-secondary text-white px-6 py-3 rounded-md hover:bg-opacity-90 transition-all-300">
+              <i class="fa fa-refresh mr-2"></i>清除
+            </button>
+          </div>
+        </div>
+        
+        <!-- 右侧：加载状态 -->
+        <div class="bg-gray-50 p-4 rounded-md">
+          <h3 class="text-lg font-semibold mb-2">加载状态</h3>
+          <div id="loading-status" class="text-gray-600 min-h-[120px] flex items-center justify-center">
+            <p class="text-gray-400 italic">等待加载...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 测试结果区 -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-bold mb-4">加载结果</h2>
+      
+      <!-- 控制台输出 -->
+      <div id="console-output" class="bg-gray-900 text-gray-100 p-4 rounded-md h-64 overflow-auto text-sm font-mono">
+        <p class="text-green-400">控制台就绪</p>
+      </div>
+      
+      <!-- 模块加载信息 -->
+      <div id="module-info" class="mt-6">
+        <p class="text-gray-500 italic">模块信息将在这里显示</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- 骨架屏容器 -->
+  <div id="skeleton-container" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-40 hidden">
+    <div class="w-64 h-64 flex flex-col items-center justify-center">
+      <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p id="skeleton-message" class="text-lg font-medium text-gray-700">加载中...</p>
+    </div>
+  </div>
+
+  <!-- 模拟页面容器 -->
+  <div id="page-container" class="fixed inset-0 bg-white z-30 hidden">
+    <div class="p-6">
+      <button id="close-page-btn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md mb-4">
+        <i class="fa fa-times mr-2"></i>关闭
+      </button>
+      <div id="page-content" class="min-h-[500px]">
+        <!-- 页面内容将在这里渲染 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 脚本 -->
+  <script type="module">
+    // 导入动态导入工具
+    import { importModule } from './src/js/utils/dynamicImport.js';
+    
+    // 加载骨架屏模块
+    let SkeletonManager = null;
+    
+    // 加载动态导入工具（保持函数结构以便与现有代码兼容）
+    function loadDynamicImportUtils() {
+      return Promise.resolve();
+    }
+    
+    // 加载骨架屏管理器
+    function loadSkeletonManager() {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = './src/js/modules/skeletonScreens.js';
+        script.onload = () => {
+          SkeletonManager = window.SkeletonManager || null;
+          resolve();
+        };
+        script.onerror = (error) => {
+          console.error('加载skeletonScreens.js失败:', error);
+          reject(error);
+        };
+        document.head.appendChild(script);
+      });
+    }
+    
+    // 初始化所有工具
+    async function initTools() {
+      try {
+        await loadDynamicImportUtils();
+        await loadSkeletonManager();
+        
+        // 如果没有找到原生的importModule，使用我们自己的实现
+        if (!importModule) {
+          console.warn('未找到原生importModule，使用备用实现');
+          importModule = function(modulePath, options = {}) {
+            return new Promise((resolve, reject) => {
+              // 模拟动态导入过程
+              setTimeout(() => {
+                console.log(`模拟加载模块: ${modulePath}`);
+                // 返回模拟的模块对象
+                resolve({ mock: true, modulePath: modulePath });
+              }, 1000);
+            });
+          };
+        }
+        
+        // 如果没有找到SkeletonManager，使用我们自己的实现
+        if (!SkeletonManager) {
+          console.warn('未找到SkeletonManager，使用备用实现');
+          window.skeletonManager = {
+            showSkeleton: (pageId) => {
+              skeletonMessage.textContent = `加载${getPageName(pageId)}中...`;
+              skeletonContainer.classList.remove('hidden');
+              console.log(`显示骨架屏: ${pageId}`);
+            },
+            hideSkeleton: (pageId) => {
+              skeletonContainer.classList.add('hidden');
+              console.log(`隐藏骨架屏: ${pageId}`);
+            }
+          };
+        } else {
+          window.skeletonManager = new SkeletonManager();
+        }
+        
+        console.log('所有工具初始化完成');
+        return true;
+      } catch (error) {
+        console.error('工具初始化失败:', error);
+        return false;
+      }
+    }
+    
+    // 初始化所有工具
+    initTools();
+    
+    // 获取DOM元素
+    const moduleSelect = document.getElementById('module-select');
+    const retryCount = document.getElementById('retry-count');
+    const retryDelay = document.getElementById('retry-delay');
+    const loadModuleBtn = document.getElementById('load-module-btn');
+    const clearResultsBtn = document.getElementById('clear-results-btn');
+    const loadingStatus = document.getElementById('loading-status');
+    const consoleOutput = document.getElementById('console-output');
+    const moduleInfo = document.getElementById('module-info');
+    const skeletonContainer = document.getElementById('skeleton-container');
+    const skeletonMessage = document.getElementById('skeleton-message');
+    const pageContainer = document.getElementById('page-container');
+    const pageContent = document.getElementById('page-content');
+    const closePageBtn = document.getElementById('close-page-btn');
+    const showConsoleBtn = document.getElementById('show-console-btn');
+    
+    // 重写控制台方法，以便在页面上显示输出
+    const originalConsole = {
+      log: console.log,
+      error: console.error,
+      warn: console.warn,
+      info: console.info
+    };
+    
+    function appendToConsole(message, type = 'log') {
+      const logElement = document.createElement('div');
+      
+      // 根据日志类型设置不同颜色
+      switch(type) {
+        case 'error':
+          logElement.className = 'text-red-400';
+          break;
+        case 'warn':
+          logElement.className = 'text-yellow-400';
+          break;
+        case 'info':
+          logElement.className = 'text-blue-400';
+          break;
+        default:
+          logElement.className = 'text-white';
+      }
+      
+      // 格式化消息
+      let formattedMessage = message;
+      if (typeof message === 'object') {
+        formattedMessage = JSON.stringify(message, null, 2);
+      }
+      
+      logElement.textContent = `[${new Date().toLocaleTimeString()}] ${formattedMessage}`;
+      consoleOutput.appendChild(logElement);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+    
+    // 重写控制台方法
+    console.log = (...args) => {
+      originalConsole.log(...args);
+      args.forEach(arg => appendToConsole(arg, 'log'));
+    };
+    
+    console.error = (...args) => {
+      originalConsole.error(...args);
+      args.forEach(arg => appendToConsole(arg, 'error'));
+    };
+    
+    console.warn = (...args) => {
+      originalConsole.warn(...args);
+      args.forEach(arg => appendToConsole(arg, 'warn'));
+    };
+    
+    console.info = (...args) => {
+      originalConsole.info(...args);
+      args.forEach(arg => appendToConsole(arg, 'info'));
+    };
+    
+    // 模拟骨架屏管理器
+    window.skeletonManager = {
+      showSkeleton: (pageId) => {
+        skeletonMessage.textContent = `加载${getPageName(pageId)}中...`;
+        skeletonContainer.classList.remove('hidden');
+        console.log(`显示骨架屏: ${pageId}`);
+      },
+      
+      hideSkeleton: (pageId) => {
+        skeletonContainer.classList.add('hidden');
+        console.log(`隐藏骨架屏: ${pageId}`);
+      }
+    };
+    
+    // 获取页面名称
+    function getPageName(pageId) {
+      const pageNames = {
+        'home': '首页',
+        'market-list': '市场列表',
+        'quant-stock': '量化选股',
+        'charity': '公益活动',
+        'admin-panel': '管理面板',
+        'personal-center': '个人中心',
+        'platform-intro': '平台介绍',
+        'api-doc': 'API文档',
+        'stock-detail': '股票详情'
+      };
+      return pageNames[pageId] || pageId;
+    }
+    
+    // 加载模块按钮事件
+    loadModuleBtn.addEventListener('click', async () => {
+      const pageId = moduleSelect.value;
+      const retries = parseInt(retryCount.value);
+      const delay = parseInt(retryDelay.value);
+      
+      // 重置状态
+      loadingStatus.innerHTML = '<div class="animate-pulse"><p class="text-gray-500">准备加载模块...</p></div>';
+      moduleInfo.innerHTML = '<div class="animate-pulse"><p class="text-gray-300 bg-gray-200 rounded h-4 w-32 mb-2"></p><p class="text-gray-300 bg-gray-200 rounded h-4 w-64 mb-2"></p><p class="text-gray-300 bg-gray-200 rounded h-4 w-48"></p></div>';
+      
+      try {
+        loadModuleBtn.disabled = true;
+        loadModuleBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>加载中...';
+        
+        // 记录开始时间
+        const startTime = performance.now();
+        
+        // 尝试加载模块
+        console.log(`开始加载模块: ${pageId}`);
+        loadingStatus.innerHTML = `<p class="text-blue-600"><i class="fa fa-circle-o-notch fa-spin mr-2"></i>正在加载模块...</p>`;
+        
+        // 使用我们修改过的importModule函数
+        const module = await importModule(`../modules/pages/${pageId}Page.js`, {
+          showLoading: true,
+          loadingMessage: `加载${getPageName(pageId)}中...`,
+          pageId: pageId,
+          retries: retries,
+          retryDelay: delay,
+          onRetry: (attempt) => {
+            console.warn(`第${attempt}次重试加载模块: ${pageId}`);
+            loadingStatus.innerHTML = `<p class="text-yellow-600"><i class="fa fa-refresh fa-spin mr-2"></i>第${attempt}次重试加载模块...</p>`;
+          }
+        });
+        
+        // 计算加载时间
+        const loadTime = performance.now() - startTime;
+        
+        // 更新状态
+        loadingStatus.innerHTML = `<p class="text-green-600"><i class="fa fa-check-circle mr-2"></i>模块加载成功！</p>`;
+        console.log(`模块加载成功: ${pageId}, 耗时: ${loadTime.toFixed(2)}ms`);
+        
+        // 显示模块信息
+        const moduleInfoHTML = `
+          <div class="bg-green-50 border border-green-200 rounded-md p-4">
+            <h3 class="font-bold text-green-800 mb-2">模块信息</h3>
+            <div class="space-y-2 text-sm">
+              <p><span class="font-medium">页面ID:</span> ${pageId}</p>
+              <p><span class="font-medium">页面名称:</span> ${getPageName(pageId)}</p>
+              <p><span class="font-medium">加载耗时:</span> ${loadTime.toFixed(2)}ms</p>
+              <p><span class="font-medium">重试次数:</span> ${retries}</p>
+              <p><span class="font-medium">模块内容:</span> ${typeof module}</p>
+              ${module ? `<p><span class="font-medium">模块方法:</span> ${Object.keys(module).join(', ')}</p>` : ''}
+            </div>
+          </div>
+        `;
+        moduleInfo.innerHTML = moduleInfoHTML;
+        
+        // 如果模块加载成功，显示页面预览
+        if (module) {
+          // 模拟页面内容
+          const previewHTML = `
+            <div class="border border-gray-200 rounded-md p-4">
+              <h3 class="text-xl font-bold mb-4">${getPageName(pageId)} 预览</h3>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <p>模块已成功加载。在实际应用中，这里会渲染页面内容。</p>
+                <p class="mt-2 text-gray-500 text-sm">模块方法: ${Object.keys(module).join(', ')}</p>
+              </div>
+            </div>
+          `;
+          
+          // 显示模拟页面
+          pageContent.innerHTML = previewHTML;
+          pageContainer.classList.remove('hidden');
+        }
+        
+      } catch (error) {
+        // 显示错误信息
+        loadingStatus.innerHTML = `<p class="text-red-600"><i class="fa fa-exclamation-circle mr-2"></i>模块加载失败！</p>`;
+        console.error(`模块加载失败: ${pageId}`, error);
+        
+        // 显示详细错误信息
+        const errorInfoHTML = `
+          <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <h3 class="font-bold text-red-800 mb-2">加载错误</h3>
+            <div class="space-y-2 text-sm">
+              <p><span class="font-medium">错误类型:</span> ${error.name}</p>
+              <p><span class="font-medium">错误消息:</span> ${error.message}</p>
+              <p><span class="font-medium">建议:</span> 请检查网络连接或模块路径是否正确</p>
+            </div>
+          </div>
+        `;
+        moduleInfo.innerHTML = errorInfoHTML;
+        
+        // 添加重试按钮
+        const retryButton = document.createElement('button');
+        retryButton.className = 'mt-4 bg-primary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all-300';
+        retryButton.innerHTML = '<i class="fa fa-refresh mr-2"></i>重新加载';
+        retryButton.onclick = () => {
+          loadModuleBtn.click();
+        };
+        
+        moduleInfo.appendChild(retryButton);
+      } finally {
+        // 恢复按钮状态
+        loadModuleBtn.disabled = false;
+        loadModuleBtn.innerHTML = '<i class="fa fa-play-circle mr-2"></i>加载模块';
+      }
+    });
+    
+    // 清除结果按钮事件
+    clearResultsBtn.addEventListener('click', () => {
+      loadingStatus.innerHTML = '<p class="text-gray-400 italic">等待加载...</p>';
+      moduleInfo.innerHTML = '<p class="text-gray-500 italic">模块信息将在这里显示</p>';
+      consoleOutput.innerHTML = '<p class="text-green-400">控制台就绪</p>';
+      
+      // 隐藏页面预览
+      pageContainer.classList.add('hidden');
+    });
+    
+    // 关闭页面预览按钮事件
+    closePageBtn.addEventListener('click', () => {
+      pageContainer.classList.add('hidden');
+    });
+    
+    // 显示/隐藏控制台按钮事件
+    let consoleVisible = true;
+    showConsoleBtn.addEventListener('click', () => {
+      consoleVisible = !consoleVisible;
+      if (consoleVisible) {
+        consoleOutput.parentElement.classList.remove('hidden');
+        showConsoleBtn.innerHTML = '<i class="fa fa-terminal mr-2"></i>隐藏控制台';
+      } else {
+        consoleOutput.parentElement.classList.add('hidden');
+        showConsoleBtn.innerHTML = '<i class="fa fa-terminal mr-2"></i>显示控制台';
+      }
+    });
+    
+    // 模拟缓存服务
+    window.CacheService = {
+      getCache: (key) => {
+        try {
+          const value = localStorage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        } catch (error) {
+          console.error('获取缓存失败:', error);
+          return null;
+        }
+      },
+      setCache: (key, value) => {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          console.error('设置缓存失败:', error);
+        }
+      }
+    };
+    
+    console.log('测试页面加载完成，准备就绪！');
+  </script>
+</body>
+</html>
